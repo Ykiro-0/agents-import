@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { deleteGeneratedFile, fetchDashboard, reprocessTask } from "./api";
 import type { DashboardTaskInfo, ExecutionLogEntry, MonitorSnapshot } from "./types";
 
-type ViewKey = "project" | "list" | "approval" | "logs" | "files";
+type ViewKey = "project" | "list" | "approval" | "agCad" | "agPrice" | "logs" | "files" | "settings";
 
 type ApprovalDraft = {
   descricao: string;
@@ -58,6 +58,34 @@ function SidebarIcon({ view }: { view: ViewKey }) {
         <path d="M12 20V10" />
         <path d="M18 20V4" />
         <path d="M6 20v-6" />
+      </svg>
+    );
+  }
+
+  if (view === "agCad") {
+    return (
+      <svg {...commonProps}>
+        <path d="M12 3l7 4v10l-7 4-7-4V7l7-4z" />
+        <path d="M9 12h6" />
+        <path d="M12 9v6" />
+      </svg>
+    );
+  }
+
+  if (view === "agPrice") {
+    return (
+      <svg {...commonProps}>
+        <path d="M12 2v20" />
+        <path d="M17 6.5c0-1.9-2.24-3.5-5-3.5S7 4.6 7 6.5 8.7 9.6 12 10.2s5 2 5 3.8-2.24 3.5-5 3.5S7 15.9 7 14" />
+      </svg>
+    );
+  }
+
+  if (view === "settings") {
+    return (
+      <svg {...commonProps}>
+        <path d="M12 8.5A3.5 3.5 0 1 1 8.5 12 3.5 3.5 0 0 1 12 8.5Z" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.54V21a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1-1.54 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.63 15a1.7 1.7 0 0 0-1.54-1H3a2 2 0 0 1 0-4h.09a1.7 1.7 0 0 0 1.54-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.63a1.7 1.7 0 0 0 1-1.54V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.54 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.37 9a1.7 1.7 0 0 0 1.54 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z" />
       </svg>
     );
   }
@@ -355,12 +383,36 @@ export function DashboardApp() {
     };
   }, [snapshot]);
 
-  const sidebarItems: Array<{ key: ViewKey; label: string; description: string }> = [
-    { key: "project", label: "Project View - agents 2D", description: "Visao estrutural do fluxo" },
-    { key: "list", label: "List", description: "NF em lista para operacao" },
-    { key: "approval", label: "Aprovacao", description: "Analise, edicao e decisao" },
-    { key: "logs", label: "Logs", description: "Erros e execucoes" },
-    { key: "files", label: "Arquivos/Testes", description: "Area tecnica e manual" }
+  const sidebarGroups: Array<{
+    title: string;
+    items: Array<{ key: ViewKey; label: string }>;
+  }> = [
+    {
+      title: "PROJETO",
+      items: [
+        { key: "project", label: "Project View" },
+        { key: "list", label: "Listas de NF" },
+        { key: "approval", label: "Aprovacao" }
+      ]
+    },
+    {
+      title: "AGENTES",
+      items: [
+        { key: "agCad", label: "AG-CAD" },
+        { key: "agPrice", label: "AG-PRICE" }
+      ]
+    },
+    {
+      title: "REGISTROS",
+      items: [
+        { key: "logs", label: "Logs" },
+        { key: "files", label: "Arquivos de Teste" }
+      ]
+    },
+    {
+      title: "APP",
+      items: [{ key: "settings", label: "Configuracoes" }]
+    }
   ];
 
   async function handleReprocess(taskId: string) {
@@ -404,86 +456,88 @@ export function DashboardApp() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.22),transparent_28%),radial-gradient(circle_at_top_right,rgba(34,197,94,0.16),transparent_24%),radial-gradient(circle_at_bottom_center,rgba(168,85,247,0.12),transparent_24%),linear-gradient(180deg,#08101d_0%,#09111f_55%,#0f172a_100%)] text-slate-100">
-      <div className="flex min-h-screen gap-4">
+      <div className="flex min-h-screen">
         <aside
           className={[
-            "sticky top-0 hidden h-screen shrink-0 border-r border-white/10 bg-slate-950/95 px-2 py-3 shadow-glow backdrop-blur-xl transition-all duration-300 lg:block",
-            sidebarCollapsed ? "w-[78px]" : "w-[196px]"
+            "sticky top-0 hidden h-screen shrink-0 border-r border-white/10 bg-slate-950/95 transition-all duration-300 lg:block",
+            sidebarCollapsed ? "w-[72px]" : "w-[248px]"
           ].join(" ")}
         >
-          <div className="flex items-center justify-between rounded-[14px] border border-white/10 bg-white/[0.03] px-2.5 py-2.5">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_16px_rgba(34,197,94,0.65)]" />
-              {!sidebarCollapsed ? <span className="text-sm font-medium text-slate-100">AG-CAD</span> : null}
-            </div>
-            <button
-              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.03] text-slate-300 transition hover:bg-white/[0.08]"
-              onClick={() => setSidebarCollapsed((value) => !value)}
-              title={sidebarCollapsed ? "Expandir menu" : "Recolher menu"}
-              type="button"
-            >
-              <svg
-                className={["h-4 w-4 transition-transform", sidebarCollapsed ? "rotate-180" : ""].join(" ")}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                viewBox="0 0 24 24"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-          </div>
-
-          {!sidebarCollapsed ? (
-            <div className="mt-3 rounded-[14px] border border-white/10 bg-white/[0.02] px-2.5 py-2.5">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">Workspace</h2>
-              <p className="mt-1 text-[11px] leading-5 text-slate-400">
-                Operacao, aprovacao e area tecnica com mais foco no conteudo principal.
-              </p>
-            </div>
-          ) : null}
-
-          <nav className="mt-3 space-y-1.5">
-            {sidebarItems.map((item) => {
-              const active = item.key === activeView;
-
-              return (
+          <div className="flex h-full flex-col">
+            <div className={["flex items-center border-b border-white/8", sidebarCollapsed ? "justify-center px-2 py-4" : "justify-between px-4 py-4"].join(" ")}>
+              <div className="flex items-center gap-2 overflow-hidden">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-violet-500" />
+                {!sidebarCollapsed ? <span className="text-sm font-medium text-slate-100">AG-CAD</span> : null}
+              </div>
+              {!sidebarCollapsed ? (
                 <button
-                  key={item.key}
-                  className={[
-                    "flex w-full items-center gap-2 rounded-[14px] border transition",
-                    active
-                      ? "border-blue-400/30 bg-gradient-to-r from-blue-500/18 to-transparent text-slate-50 shadow-lg shadow-blue-950/20"
-                      : "border-white/10 bg-white/[0.02] text-slate-300 hover:bg-white/[0.05]",
-                    sidebarCollapsed ? "justify-center px-0 py-2.5" : "px-2.5 py-2 text-left"
-                  ].join(" ")}
-                  onClick={() => setActiveView(item.key)}
-                  title={sidebarCollapsed ? item.label : undefined}
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition hover:bg-white/[0.06] hover:text-slate-200"
+                  onClick={() => setSidebarCollapsed((value) => !value)}
+                  title="Recolher menu"
                   type="button"
                 >
-                  <span
-                    className={[
-                      "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border",
-                      active
-                        ? "border-blue-300/20 bg-blue-500/15 text-blue-100"
-                        : "border-white/10 bg-white/[0.03] text-slate-300"
-                    ].join(" ")}
-                  >
-                    <SidebarIcon view={item.key} />
-                  </span>
-                  {!sidebarCollapsed ? (
-                    <span className="min-w-0">
-                      <span className="block text-[13px] font-medium leading-5">{item.label}</span>
-                      <span className="mt-0.5 block text-[11px] leading-4 text-slate-400">{item.description}</span>
-                    </span>
-                  ) : null}
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
                 </button>
-              );
-            })}
-          </nav>
+              ) : (
+                <button
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition hover:bg-white/[0.06] hover:text-slate-200"
+                  onClick={() => setSidebarCollapsed((value) => !value)}
+                  title="Expandir menu"
+                  type="button"
+                >
+                  <svg className="h-4 w-4 rotate-180" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-3 py-4">
+              <div className="space-y-4">
+                {sidebarGroups.map((group) => (
+                  <div key={group.title}>
+                    {!sidebarCollapsed ? (
+                      <div className="mb-2 px-3 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">
+                        {group.title}
+                      </div>
+                    ) : null}
+                    <div className="space-y-1">
+                      {group.items.map((item) => {
+                        const active = item.key === activeView;
+
+                        return (
+                          <button
+                            key={item.key}
+                            className={[
+                              "flex w-full items-center gap-3 rounded-xl border border-transparent transition",
+                              active
+                                ? "border-blue-400/20 bg-blue-500/12 text-slate-50"
+                                : "text-slate-400 hover:border-white/10 hover:bg-white/[0.04] hover:text-slate-200",
+                              sidebarCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5 text-left"
+                            ].join(" ")}
+                            onClick={() => setActiveView(item.key)}
+                            title={sidebarCollapsed ? item.label : undefined}
+                            type="button"
+                          >
+                            <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center">
+                              <SidebarIcon view={item.key} />
+                            </span>
+                            {!sidebarCollapsed ? <span className="text-[13px] font-medium">{item.label}</span> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4 border-t border-white/8 last:hidden" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </aside>
 
-        <div className="min-w-0 flex-1 px-4 py-6 md:px-5 md:py-7">
+        <div className="min-w-0 flex-1 px-4 py-6 md:px-6 md:py-7">
           <section className="mb-6 grid gap-4">
             <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_16px_rgba(34,197,94,0.65)]" />
@@ -494,7 +548,7 @@ export function DashboardApp() {
               Acompanhe a fila do ClickUp, abra a lista de NFs, revise a planilha gerada e use a area tecnica para testes e diagnostico.
             </p>
             <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
-              {sidebarItems.map((item) => {
+              {sidebarGroups.flatMap((group) => group.items).map((item) => {
                 const active = item.key === activeView;
 
                 return (
@@ -927,6 +981,33 @@ export function DashboardApp() {
                   </div>
                 </div>
               </>
+            ) : null}
+
+            {activeView === "agCad" ? (
+              <div className="col-span-12 rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-glow backdrop-blur-xl">
+                <div className="text-xs uppercase tracking-[0.14em] text-slate-400">AG-CAD</div>
+                <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-slate-300">
+                  O AG-CAD e o agente principal de estruturacao da planilha. Aqui vamos concentrar analise de parsing, alertas de estrutura e evolucao do fluxo inteligente.
+                </div>
+              </div>
+            ) : null}
+
+            {activeView === "agPrice" ? (
+              <div className="col-span-12 rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-glow backdrop-blur-xl">
+                <div className="text-xs uppercase tracking-[0.14em] text-slate-400">AG-PRICE</div>
+                <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-slate-300">
+                  Area reservada para o agente de preco. Futuramente ele podera sugerir margem, preco de venda e validacoes comerciais.
+                </div>
+              </div>
+            ) : null}
+
+            {activeView === "settings" ? (
+              <div className="col-span-12 rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-glow backdrop-blur-xl">
+                <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Configuracoes</div>
+                <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-slate-300">
+                  Espaco preparado para configuracoes da aplicacao, integracoes e parametros da automacao.
+                </div>
+              </div>
             ) : null}
           </section>
         </div>
