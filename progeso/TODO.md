@@ -58,14 +58,14 @@ Essa e a primeira parte que a Kadia deve complementar.
 
 | Status | Tarefa | Dono | Arquivos principais |
 |---|---|---|---|
-| [ ] | Criar tipo padrao de erro/validacao |  | `src/validators/validation-result.ts`, `src/types.ts` |
-| [ ] | Criar validador CSV |  | `src/validators/csv-validator.ts` |
-| [ ] | Criar validador HTML |  | `src/validators/html-validator.ts` |
-| [ ] | Criar validador XML |  | `src/validators/xml-validator.ts` |
-| [ ] | Criar validador de cruzamento CSV + HTML + XML |  | `src/validators/cross-validator.ts` |
-| [ ] | Criar validador da linha VF |  | `src/validators/vf-row-validator.ts` |
-| [ ] | Bloquear item com erro critico antes da planilha final |  | `src/services/task-processor.ts` |
-| [ ] | Gerar relatorio de validacao |  | `src/services/validation-report.ts` |
+| [x] | Criar tipo padrao de erro/validacao | Kadia | `src/validators/validation-result.ts`, `src/types.ts` |
+| [x] | Criar validador CSV | Kadia | `src/validators/csv-validator.ts` |
+| [x] | Criar validador HTML | Kadia | `src/validators/html-validator.ts` |
+| [x] | Criar validador XML | Kadia | `src/validators/xml-validator.ts` |
+| [x] | Criar validador de cruzamento CSV + HTML + XML | Kadia | `src/validators/cross-validator.ts` |
+| [x] | Criar validador da linha VF | Kadia | `src/validators/vf-row-validator.ts` |
+| [x] | Bloquear item com erro critico antes da planilha final | Kadia | `src/services/task-processor.ts` |
+| [x] | Gerar relatorio de validacao | Kadia | `src/services/validation-report.ts` |
 
 Regras minimas:
 
@@ -151,6 +151,9 @@ Nao implementar antes dos validadores.
 | [x] | Criar servico de sugestao de descricao reduzida | Kadia | `src/services/kadia-enrichment.ts` |
 | [x] | Criar agente enriquecido para planilha original (descricao + secao) | Kadia | `src/services/kadia-enrichment.ts`, `src/tools/enrich-spreadsheet.ts` |
 | [x] | Criar execucao com duas fontes (ClickUp e pasta local) | Kadia | `src/tools/enrich-spreadsheet.ts` |
+| [x] | Configurar pipeline para priorizar planilha original no enriquecimento | Kadia | `src/tools/enrich-spreadsheet.ts` |
+| [~] | Integrar busca API opcional para melhorar descricao/retorno de secao | Kadia | `src/services/kadia-enrichment.ts`, `src/tools/enrich-spreadsheet.ts` |
+| [ ] | Definir endpoint final e contrato oficial da API externa | Usuario + Kadia | `docs/api.md`, `.env` |
 | [ ] | Criar campo de confianca da IA |  | `src/types.ts` |
 | [ ] | Marcar baixa confianca como pendente revisao |  | `src/validators/vf-row-validator.ts` |
 

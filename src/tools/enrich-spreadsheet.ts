@@ -12,6 +12,9 @@ interface CliOptions {
   sectionRulesPath?: string;
   sheetName?: string;
   maxReducedLength?: number;
+  apiUrl?: string;
+  apiKey?: string;
+  apiTimeoutMs?: number;
 }
 
 function readArgValue(args: string[], flag: string): string | undefined {
@@ -39,6 +42,9 @@ function printHelp(): void {
   console.log("  --section-rules <arquivo>  JSON com regras de secao e palavras-chave");
   console.log("  --sheet <nome>             Nome da aba a ser processada");
   console.log("  --max-reduced <numero>     Tamanho maximo da descricao reduzida (padrao 60)");
+  console.log("  --api-url <url>            Endpoint opcional para enriquecer descricao/secao");
+  console.log("  --api-key <chave>          Chave opcional da API de enriquecimento");
+  console.log("  --api-timeout <ms>         Timeout da API em milissegundos (padrao 8000)");
   console.log("  --help                     Mostrar ajuda");
   console.log("");
   console.log("Exemplos:");
@@ -47,6 +53,7 @@ function printHelp(): void {
     "  npm run enrich:spreadsheet -- --source local --input data/planilha_original.xlsx --section-rules config/kadia-section-rules.json"
   );
   console.log("  npm run enrich:spreadsheet -- --source local --input-folder data");
+  console.log("  npm run enrich:spreadsheet -- --source local --input data/base.xlsx --api-url https://seu-endpoint/enrich");
 }
 
 function parseCliArgs(args: string[]): CliOptions {
@@ -77,7 +84,11 @@ function parseCliArgs(args: string[]): CliOptions {
   const sectionRulesPath = readArgValue(args, "--section-rules");
   const sheetName = readArgValue(args, "--sheet");
   const maxReducedRaw = readArgValue(args, "--max-reduced");
+  const apiUrl = readArgValue(args, "--api-url") ?? process.env.KADIA_ENRICHMENT_API_URL;
+  const apiKey = readArgValue(args, "--api-key") ?? process.env.KADIA_ENRICHMENT_API_KEY;
+  const apiTimeoutRaw = readArgValue(args, "--api-timeout") ?? process.env.KADIA_ENRICHMENT_API_TIMEOUT_MS;
   let maxReducedLength: number | undefined;
+  let apiTimeoutMs: number | undefined;
 
   if (maxReducedRaw) {
     const parsedMaxReduced = Number(maxReducedRaw);
@@ -89,6 +100,16 @@ function parseCliArgs(args: string[]): CliOptions {
     maxReducedLength = parsedMaxReduced;
   }
 
+  if (apiTimeoutRaw) {
+    const parsedApiTimeout = Number(apiTimeoutRaw);
+
+    if (!Number.isFinite(parsedApiTimeout) || parsedApiTimeout <= 0) {
+      throw new Error("Parametro invalido: --api-timeout deve ser numero positivo.");
+    }
+
+    apiTimeoutMs = parsedApiTimeout;
+  }
+
   return {
     source,
     inputPath,
@@ -96,11 +117,22 @@ function parseCliArgs(args: string[]): CliOptions {
     outputPath,
     sectionRulesPath,
     sheetName,
-    maxReducedLength
+    maxReducedLength,
+    apiUrl: apiUrl?.trim() || undefined,
+    apiKey: apiKey?.trim() || undefined,
+    apiTimeoutMs
   };
 }
 
 const LOCAL_SPREADSHEET_EXTENSIONS = new Set([".xlsx", ".xlsm", ".xls", ".csv"]);
+
+function normalizeFileExtension(fileName: string): string {
+  return path.extname(fileName).toLowerCase();
+}
+
+function sanitizeFileName(fileName: string): string {
+  return fileName.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_");
+}
 
 async function resolveLatestSpreadsheetPath(inputFolder: string): Promise<string> {
   const resolvedFolder = path.resolve(inputFolder);
@@ -122,14 +154,52 @@ async function resolveLatestSpreadsheetPath(inputFolder: string): Promise<string
   return filesWithStats[0].filePath;
 }
 
+function resolveSpreadsheetAttachment(
+  attachments: Array<{ title: string; extension?: string; url: string }>
+): { title: string; extension?: string; url: string } {
+  const extensionPriority = [".xlsx", ".xlsm", ".xls", ".csv"];
+  const candidates = attachments.filter((attachment) => {
+    const titleExtension = normalizeFileExtension(attachment.title);
+    const extension = attachment.extension ? `.${attachment.extension.toLowerCase()}` : "";
+    return LOCAL_SPREADSHEET_EXTENSIONS.has(titleExtension) || LOCAL_SPREADSHEET_EXTENSIONS.has(extension);
+  });
+
+  if (candidates.length === 0) {
+    throw new Error("Task do ClickUp sem planilha original anexada (.xlsx/.xls/.csv).");
+  }
+
+  candidates.sort((left, right) => {
+    const leftExt = normalizeFileExtension(left.title) || (left.extension ? `.${left.extension.toLowerCase()}` : "");
+    const rightExt = normalizeFileExtension(right.title) || (right.extension ? `.${right.extension.toLowerCase()}` : "");
+    const leftPriority = extensionPriority.indexOf(leftExt);
+    const rightPriority = extensionPriority.indexOf(rightExt);
+
+    const leftScore = leftPriority === -1 ? 999 : leftPriority;
+    const rightScore = rightPriority === -1 ? 999 : rightPriority;
+    return leftScore - rightScore;
+  });
+
+  return candidates[0];
+}
+
 async function resolveInputPath(options: CliOptions): Promise<{ inputPath: string; sourceNote: string }> {
   if (options.source === "clickup") {
-    const { processPendingReceiptTask } = await import("../services/task-processor.js");
-    const clickupResult = await processPendingReceiptTask();
+    const [{ config }, { getTaskToProcess, downloadAttachment }] = await Promise.all([
+      import("../config.js"),
+      import("../clients/clickup.js")
+    ]);
+    const selectedTask = await getTaskToProcess(config.clickUpStatusName, config.clickUpTaskId || undefined);
+    const spreadsheetAttachment = resolveSpreadsheetAttachment(selectedTask.attachments);
+    const spreadsheetBuffer = await downloadAttachment(spreadsheetAttachment.url);
+    const targetDir = path.join(config.outputDir, "kadia-originais");
+    const safeFileName = sanitizeFileName(spreadsheetAttachment.title || "planilha_original.xlsx");
+    const inputPath = path.join(targetDir, `${selectedTask.id}_${safeFileName}`);
+    await fs.mkdir(targetDir, { recursive: true });
+    await fs.writeFile(inputPath, spreadsheetBuffer);
 
     return {
-      inputPath: clickupResult.outputPath,
-      sourceNote: `ClickUp task ${clickupResult.taskName} (${clickupResult.taskId}) / NF ${clickupResult.nfNumber}`
+      inputPath,
+      sourceNote: `ClickUp task ${selectedTask.name} (${selectedTask.id}) / anexo original ${spreadsheetAttachment.title}`
     };
   }
 
@@ -156,7 +226,10 @@ async function main(): Promise<void> {
     outputPath: options.outputPath,
     sectionRulesPath: options.sectionRulesPath,
     sheetName: options.sheetName,
-    maxReducedLength: options.maxReducedLength
+    maxReducedLength: options.maxReducedLength,
+    apiUrl: options.apiUrl,
+    apiKey: options.apiKey,
+    apiTimeoutMs: options.apiTimeoutMs
   });
 
   console.log("Enriquecimento finalizado.");
@@ -170,6 +243,10 @@ async function main(): Promise<void> {
   console.log(`Itens enriquecidos: ${result.enrichedRows}`);
   console.log(`Pendentes de secao: ${result.pendingSectionRows}`);
   console.log(`Bloqueados: ${result.blockedRows}`);
+  console.log(`API habilitada: ${result.apiEnabled ? "sim" : "nao"}`);
+  console.log(`API tentativas: ${result.apiAttempts}`);
+  console.log(`API sucesso por linha: ${result.apiSuccessRows}`);
+  console.log(`API fallback local: ${result.apiFallbackRows}`);
 }
 
 main().catch((error: unknown) => {
