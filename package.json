@@ -1,0 +1,26 @@
+{
+  "name": "ag-cad-vf-automation",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Automacao de cadastro VF a partir de anexos de tarefas do ClickUp.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "watch:clickup": "tsx src/index.ts --watch",
+    "dashboard": "tsx src/index.ts --dashboard"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "csv-parse": "^5.5.6",
+    "dotenv": "^16.4.5",
+    "fast-xml-parser": "^4.5.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
