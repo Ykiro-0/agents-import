@@ -10,6 +10,68 @@ type ApprovalDraft = {
   observacao: string;
 };
 
+function SidebarIcon({ view }: { view: ViewKey }) {
+  const commonProps = {
+    className: "h-[18px] w-[18px]",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.8",
+    viewBox: "0 0 24 24"
+  } as const;
+
+  if (view === "project") {
+    return (
+      <svg {...commonProps}>
+        <path d="M4 6h7v5H4z" />
+        <path d="M13 6h7v5h-7z" />
+        <path d="M4 13h7v5H4z" />
+        <path d="M13 13h7v5h-7z" />
+      </svg>
+    );
+  }
+
+  if (view === "list") {
+    return (
+      <svg {...commonProps}>
+        <path d="M8 6h12" />
+        <path d="M8 12h12" />
+        <path d="M8 18h12" />
+        <path d="M4 6h.01" />
+        <path d="M4 12h.01" />
+        <path d="M4 18h.01" />
+      </svg>
+    );
+  }
+
+  if (view === "approval") {
+    return (
+      <svg {...commonProps}>
+        <path d="M9 12l2 2 4-4" />
+        <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
+      </svg>
+    );
+  }
+
+  if (view === "logs") {
+    return (
+      <svg {...commonProps}>
+        <path d="M12 20V10" />
+        <path d="M18 20V4" />
+        <path d="M6 20v-6" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...commonProps}>
+      <path d="M4 7h16" />
+      <path d="M7 4v6" />
+      <path d="M17 14H7" />
+      <path d="M17 10v8" />
+    </svg>
+  );
+}
+
 function fmt(date?: string): string {
   if (!date) return "-";
 
@@ -218,6 +280,7 @@ export function DashboardApp() {
   const [deleting, setDeleting] = useState<Set<string>>(new Set());
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<ViewKey>("list");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft>({
     descricao: "",
@@ -340,20 +403,47 @@ export function DashboardApp() {
   const selectedMeta = selectedTask ? extractTaskMeta(selectedTask) : null;
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.22),transparent_28%),radial-gradient(circle_at_top_right,rgba(34,197,94,0.16),transparent_24%),radial-gradient(circle_at_bottom_center,rgba(168,85,247,0.12),transparent_24%),linear-gradient(180deg,#08101d_0%,#09111f_55%,#0f172a_100%)] px-4 py-6 text-slate-100 md:px-6 md:py-8">
-      <div className="mx-auto flex max-w-[1480px] gap-6">
-        <aside className="sticky top-6 hidden h-[calc(100vh-3rem)] w-[290px] shrink-0 rounded-[28px] border border-white/10 bg-slate-900/70 p-5 shadow-glow backdrop-blur-xl lg:block">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_16px_rgba(34,197,94,0.65)]" />
-            AG-CAD
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.22),transparent_28%),radial-gradient(circle_at_top_right,rgba(34,197,94,0.16),transparent_24%),radial-gradient(circle_at_bottom_center,rgba(168,85,247,0.12),transparent_24%),linear-gradient(180deg,#08101d_0%,#09111f_55%,#0f172a_100%)] text-slate-100">
+      <div className="flex min-h-screen gap-4">
+        <aside
+          className={[
+            "sticky top-0 hidden h-screen shrink-0 border-r border-white/10 bg-slate-950/95 px-2 py-3 shadow-glow backdrop-blur-xl transition-all duration-300 lg:block",
+            sidebarCollapsed ? "w-[78px]" : "w-[196px]"
+          ].join(" ")}
+        >
+          <div className="flex items-center justify-between rounded-[14px] border border-white/10 bg-white/[0.03] px-2.5 py-2.5">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_16px_rgba(34,197,94,0.65)]" />
+              {!sidebarCollapsed ? <span className="text-sm font-medium text-slate-100">AG-CAD</span> : null}
+            </div>
+            <button
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.03] text-slate-300 transition hover:bg-white/[0.08]"
+              onClick={() => setSidebarCollapsed((value) => !value)}
+              title={sidebarCollapsed ? "Expandir menu" : "Recolher menu"}
+              type="button"
+            >
+              <svg
+                className={["h-4 w-4 transition-transform", sidebarCollapsed ? "rotate-180" : ""].join(" ")}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                viewBox="0 0 24 24"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
           </div>
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold text-slate-100">Workspace</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
-              Fluxo principal da operacao, aprovacao da planilha e area tecnica do agente.
-            </p>
-          </div>
-          <nav className="mt-8 space-y-3">
+
+          {!sidebarCollapsed ? (
+            <div className="mt-3 rounded-[14px] border border-white/10 bg-white/[0.02] px-2.5 py-2.5">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">Workspace</h2>
+              <p className="mt-1 text-[11px] leading-5 text-slate-400">
+                Operacao, aprovacao e area tecnica com mais foco no conteudo principal.
+              </p>
+            </div>
+          ) : null}
+
+          <nav className="mt-3 space-y-1.5">
             {sidebarItems.map((item) => {
               const active = item.key === activeView;
 
@@ -361,23 +451,39 @@ export function DashboardApp() {
                 <button
                   key={item.key}
                   className={[
-                    "w-full rounded-2xl border px-4 py-4 text-left transition",
+                    "flex w-full items-center gap-2 rounded-[14px] border transition",
                     active
-                      ? "border-blue-400/30 bg-gradient-to-r from-blue-500/20 to-transparent text-slate-50 shadow-lg shadow-blue-950/20"
-                      : "border-white/10 bg-white/[0.02] text-slate-300 hover:bg-white/[0.05]"
+                      ? "border-blue-400/30 bg-gradient-to-r from-blue-500/18 to-transparent text-slate-50 shadow-lg shadow-blue-950/20"
+                      : "border-white/10 bg-white/[0.02] text-slate-300 hover:bg-white/[0.05]",
+                    sidebarCollapsed ? "justify-center px-0 py-2.5" : "px-2.5 py-2 text-left"
                   ].join(" ")}
                   onClick={() => setActiveView(item.key)}
+                  title={sidebarCollapsed ? item.label : undefined}
                   type="button"
                 >
-                  <div className="text-sm font-medium">{item.label}</div>
-                  <div className="mt-1 text-xs text-slate-400">{item.description}</div>
+                  <span
+                    className={[
+                      "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border",
+                      active
+                        ? "border-blue-300/20 bg-blue-500/15 text-blue-100"
+                        : "border-white/10 bg-white/[0.03] text-slate-300"
+                    ].join(" ")}
+                  >
+                    <SidebarIcon view={item.key} />
+                  </span>
+                  {!sidebarCollapsed ? (
+                    <span className="min-w-0">
+                      <span className="block text-[13px] font-medium leading-5">{item.label}</span>
+                      <span className="mt-0.5 block text-[11px] leading-4 text-slate-400">{item.description}</span>
+                    </span>
+                  ) : null}
                 </button>
               );
             })}
           </nav>
         </aside>
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 px-4 py-6 md:px-5 md:py-7">
           <section className="mb-6 grid gap-4">
             <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_16px_rgba(34,197,94,0.65)]" />
