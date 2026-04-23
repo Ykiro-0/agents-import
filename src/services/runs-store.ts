@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { config } from "../config.js";
 import type { ExecutionLogEntry, ProcessedTaskResult } from "../types.js";
@@ -9,7 +10,12 @@ async function loadRuns(): Promise<ExecutionLogEntry[]> {
   try {
     const content = await fs.readFile(config.runsFilePath, "utf8");
     const parsed = JSON.parse(content) as ExecutionLogEntry[];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed)
+      ? parsed.map((run) => ({
+          ...run,
+          downloadUrl: run.downloadUrl ?? toDownloadUrl(run.outputPath)
+        }))
+      : [];
   } catch (error: unknown) {
     const nodeError = error as NodeJS.ErrnoException;
 
@@ -25,6 +31,14 @@ async function saveRuns(runs: ExecutionLogEntry[]): Promise<void> {
   await fs.writeFile(config.runsFilePath, JSON.stringify(runs, null, 2), "utf8");
 }
 
+function toDownloadUrl(outputPath?: string): string | undefined {
+  if (!outputPath) {
+    return undefined;
+  }
+
+  return `/downloads/${encodeURIComponent(path.basename(outputPath))}`;
+}
+
 export async function appendIdleRun(message: string): Promise<void> {
   const now = new Date().toISOString();
   const runs = await loadRuns();
@@ -34,7 +48,8 @@ export async function appendIdleRun(message: string): Promise<void> {
     startedAt: now,
     finishedAt: now,
     status: "idle",
-    message
+    message,
+    downloadUrl: undefined
   });
 
   await saveRuns(runs.slice(0, MAX_RUNS));
@@ -49,7 +64,8 @@ export async function appendErrorRun(message: string): Promise<void> {
     startedAt: now,
     finishedAt: now,
     status: "error",
-    message
+    message,
+    downloadUrl: undefined
   });
 
   await saveRuns(runs.slice(0, MAX_RUNS));
@@ -69,6 +85,7 @@ export async function appendSuccessRun(result: ProcessedTaskResult): Promise<voi
     taskName: result.taskName,
     nfNumber: result.nfNumber,
     outputPath: result.outputPath,
+    downloadUrl: toDownloadUrl(result.outputPath),
     totalItems: result.totalItems
   });
 
@@ -78,4 +95,9 @@ export async function appendSuccessRun(result: ProcessedTaskResult): Promise<voi
 export async function getRecentRuns(limit = 15): Promise<ExecutionLogEntry[]> {
   const runs = await loadRuns();
   return runs.slice(0, limit);
+}
+
+export async function getLatestSuccessfulRun(): Promise<ExecutionLogEntry | undefined> {
+  const runs = await loadRuns();
+  return runs.find((run) => run.status === "success" && run.outputPath);
 }

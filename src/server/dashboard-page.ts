@@ -101,6 +101,28 @@ export function renderDashboardPage(): string {
         border-radius: 999px;
         background: var(--accent-2);
       }
+      .action-link {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 9px 12px;
+        background: var(--accent-2);
+        color: #fffaf2;
+        text-decoration: none;
+        font-size: 13px;
+      }
+      .secondary-button {
+        background: #fff;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        padding: 9px 12px;
+      }
+      .muted-box {
+        border: 1px dashed var(--line);
+        border-radius: 16px;
+        padding: 12px;
+        background: rgba(255,255,255,0.45);
+      }
       button {
         border: 0;
         border-radius: 999px;
@@ -173,6 +195,16 @@ export function renderDashboardPage(): string {
         </div>
 
         <div class="card span-4">
+          <div class="eyebrow">Processamento</div>
+          <div id="processing-details" class="muted-box meta"></div>
+        </div>
+
+        <div class="card span-4">
+          <div class="eyebrow">Ultima planilha</div>
+          <div id="latest-file" class="muted-box meta"></div>
+        </div>
+
+        <div class="card span-4">
           <div class="eyebrow">Ciclos</div>
           <div id="cycle-details" class="meta"></div>
         </div>
@@ -184,8 +216,11 @@ export function renderDashboardPage(): string {
               <tr>
                 <th>Task</th>
                 <th>Anexos</th>
+                <th>Processo</th>
                 <th>Pronta</th>
                 <th>Processada</th>
+                <th>Planilha</th>
+                <th>Acoes</th>
               </tr>
             </thead>
             <tbody id="target-tasks"></tbody>
@@ -202,6 +237,7 @@ export function renderDashboardPage(): string {
                 <th>Mensagem</th>
                 <th>NF</th>
                 <th>Arquivo</th>
+                <th>Baixar</th>
               </tr>
             </thead>
             <tbody id="recent-runs"></tbody>
@@ -217,7 +253,21 @@ export function renderDashboardPage(): string {
       const monitorMessageEl = document.getElementById("monitor-message");
       const monitorMetaEl = document.getElementById("monitor-meta");
       const cycleDetailsEl = document.getElementById("cycle-details");
+      const processingDetailsEl = document.getElementById("processing-details");
+      const latestFileEl = document.getElementById("latest-file");
       const refreshButton = document.getElementById("refresh-button");
+
+      async function reprocessTask(taskId) {
+        await fetch("/api/reprocess", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ taskId })
+        });
+
+        await loadDashboard();
+      }
 
       function fmt(date) {
         if (!date) return "-";
@@ -241,6 +291,22 @@ export function renderDashboardPage(): string {
           "Ultimo erro: " + fmt(data.lastErrorAt)
         ].join("<br>");
 
+        processingDetailsEl.innerHTML = data.processing && data.processing.active
+          ? [
+              "Task: " + textOrDash(data.processing.taskName),
+              "Etapa: " + textOrDash(data.processing.stage),
+              "Inicio: " + fmt(data.processing.startedAt)
+            ].join("<br>")
+          : "Nenhuma planilha em criacao agora.";
+
+        latestFileEl.innerHTML = data.latestFile && data.latestFile.downloadUrl
+          ? [
+              "Task: " + textOrDash(data.latestFile.taskName),
+              "NF: " + textOrDash(data.latestFile.nfNumber),
+              '<a class="action-link" href="' + data.latestFile.downloadUrl + '">Baixar planilha</a>'
+            ].join("<br>")
+          : "Nenhuma planilha gerada ainda.";
+
         statusCountsEl.innerHTML = data.statusCounts.map((item) => \`
           <div class="kpi">
             <div class="eyebrow">\${item.status}</div>
@@ -260,8 +326,11 @@ export function renderDashboardPage(): string {
               <span class="pill \${task.hasHtml ? "ok" : "error"}">HTML: \${task.hasHtml ? "ok" : "faltando"}</span>
               <span class="pill \${task.hasXml ? "ok" : "error"}">XML: \${task.hasXml ? "ok" : "faltando"}</span>
             </td>
+            <td>\${textOrDash(task.processingStage)}</td>
             <td class="\${task.readyToProcess ? "ok" : "warn"}">\${task.readyToProcess ? "Sim" : "Nao"}</td>
             <td class="\${task.alreadyProcessed ? "ok" : "warn"}">\${task.alreadyProcessed ? "Sim" : "Nao"}</td>
+            <td>\${task.latestDownloadUrl ? '<a class="action-link" href="' + task.latestDownloadUrl + '">Baixar</a>' : "-"}</td>
+            <td><button class="secondary-button" type="button" onclick="reprocessTask('\${task.id}')">Reprocessar</button></td>
           </tr>
         \`).join("");
 
@@ -272,6 +341,7 @@ export function renderDashboardPage(): string {
             <td>\${textOrDash(run.message)}<br /><span class="meta">\${textOrDash(run.taskName)}</span></td>
             <td>\${textOrDash(run.nfNumber)}</td>
             <td>\${textOrDash(run.outputPath)}</td>
+            <td>\${run.downloadUrl ? '<a class="action-link" href="' + run.downloadUrl + '">Baixar</a>' : "-"}</td>
           </tr>
         \`).join("");
       }

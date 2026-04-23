@@ -3,7 +3,7 @@ import { config } from "../config.js";
 import type { ClickUpTask, DashboardTaskInfo, MonitorSnapshot, StatusCount } from "../types.js";
 import { loadState } from "./state-store.js";
 import { getMonitorState } from "./monitor.js";
-import { getRecentRuns } from "./runs-store.js";
+import { getLatestSuccessfulRun, getRecentRuns } from "./runs-store.js";
 
 function hasAttachment(task: ClickUpTask, extension: string): boolean {
   return task.attachments.some((attachment) => {
@@ -52,10 +52,11 @@ async function buildStatusCounts(): Promise<StatusCount[]> {
 }
 
 export async function getDashboardSnapshot(): Promise<MonitorSnapshot> {
-  const [targetTasks, state, recentRuns, monitorState, statusCounts] = await Promise.all([
+  const [targetTasks, state, recentRuns, latestSuccessfulRun, monitorState, statusCounts] = await Promise.all([
     getTasksByStatus(config.clickUpStatusName),
     loadState(),
     getRecentRuns(),
+    getLatestSuccessfulRun(),
     Promise.resolve(getMonitorState()),
     buildStatusCounts()
   ]);
@@ -74,7 +75,24 @@ export async function getDashboardSnapshot(): Promise<MonitorSnapshot> {
     })
   );
 
-  const mappedTasks = hydratedTasks.map((task) => mapTask(task, state.processedTaskIds));
+  const latestRunByTaskId = new Map(
+    recentRuns
+      .filter((run) => run.status === "success" && run.taskId)
+      .map((run) => [run.taskId as string, run])
+  );
+
+  const mappedTasks = hydratedTasks.map((task) => {
+    const taskInfo = mapTask(task, state.processedTaskIds);
+    const latestRun = latestRunByTaskId.get(task.id);
+
+    return {
+      ...taskInfo,
+      processingStage: monitorState.processing.active && monitorState.processing.taskId === task.id
+        ? monitorState.processing.stage
+        : undefined,
+      latestDownloadUrl: latestRun?.downloadUrl
+    };
+  });
 
   return {
     serverTime: new Date().toISOString(),
@@ -85,6 +103,15 @@ export async function getDashboardSnapshot(): Promise<MonitorSnapshot> {
     lastSuccessAt: monitorState.lastSuccessAt,
     lastErrorAt: monitorState.lastErrorAt,
     lastMessage: monitorState.lastMessage,
+    processing: monitorState.processing,
+    latestFile: latestSuccessfulRun
+      ? {
+          taskName: latestSuccessfulRun.taskName,
+          nfNumber: latestSuccessfulRun.nfNumber,
+          outputPath: latestSuccessfulRun.outputPath,
+          downloadUrl: latestSuccessfulRun.downloadUrl
+        }
+      : undefined,
     statusCounts,
     targetTasks: mappedTasks,
     recentRuns

@@ -73,6 +73,14 @@ export interface ProcessedTaskResult {
   totalItems: number;
 }
 
+export interface ProcessingStatus {
+  active: boolean;
+  taskId?: string;
+  taskName?: string;
+  stage?: string;
+  startedAt?: string;
+}
+
 export interface AutomationState {
   processedTaskIds: string[];
 }
@@ -87,6 +95,7 @@ export interface ExecutionLogEntry {
   taskName?: string;
   nfNumber?: string;
   outputPath?: string;
+  downloadUrl?: string;
   totalItems?: number;
 }
 
@@ -101,6 +110,8 @@ export interface DashboardTaskInfo {
   hasXml: boolean;
   readyToProcess: boolean;
   alreadyProcessed: boolean;
+  processingStage?: string;
+  latestDownloadUrl?: string;
 }
 
 export interface StatusCount {
@@ -117,6 +128,13 @@ export interface MonitorSnapshot {
   lastSuccessAt?: string;
   lastErrorAt?: string;
   lastMessage: string;
+  processing: ProcessingStatus;
+  latestFile?: {
+    taskName?: string;
+    nfNumber?: string;
+    outputPath?: string;
+    downloadUrl?: string;
+  };
   statusCounts: StatusCount[];
   targetTasks: DashboardTaskInfo[];
   recentRuns: ExecutionLogEntry[];

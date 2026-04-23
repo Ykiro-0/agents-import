@@ -6,8 +6,11 @@ import { parseCsv } from "../parsers/csv.js";
 import { parseHtml } from "../parsers/html.js";
 import { parseXml } from "../parsers/xml.js";
 import { loadState, markTaskAsProcessed } from "./state-store.js";
+import type { ProcessingStatus } from "../types.js";
 import type { ClickUpAttachment, CsvItem, HtmlItem, ProcessedTaskResult, VfRow, XmlItem } from "../types.js";
 import { writeVfWorkbook } from "./vf-workbook.js";
+
+type ProgressReporter = (status: ProcessingStatus) => void;
 
 function normalizeText(value: string): string {
   return value
@@ -142,28 +145,60 @@ export async function processPendingReceiptTask(): Promise<ProcessedTaskResult> 
   );
 }
 
+export async function reprocessTaskById(
+  taskId: string,
+  reportProgress?: ProgressReporter
+): Promise<ProcessedTaskResult> {
+  const selectedTask = await getTask(taskId);
+  return processTaskWithProgress(selectedTask, reportProgress);
+}
+
 async function processTask(selectedTask: { id: string; name: string; description: string; attachments: ClickUpAttachment[] }): Promise<ProcessedTaskResult> {
+  return processTaskWithProgress(selectedTask);
+}
+
+async function processTaskWithProgress(
+  selectedTask: { id: string; name: string; description: string; attachments: ClickUpAttachment[] },
+  reportProgress?: ProgressReporter
+): Promise<ProcessedTaskResult> {
+  const sendProgress = (stage: string): void => {
+    reportProgress?.({
+      active: true,
+      taskId: selectedTask.id,
+      taskName: selectedTask.name,
+      stage,
+      startedAt: new Date().toISOString()
+    });
+  };
+
+  sendProgress("validando anexos");
   const csvAttachment = findAttachment(selectedTask.attachments, ".csv");
   const htmlAttachment = findAttachment(selectedTask.attachments, ".html");
   const xmlAttachment = findAttachment(selectedTask.attachments, ".xml");
 
+  sendProgress("baixando anexos");
   const [csvBuffer, htmlBuffer, xmlBuffer] = await Promise.all([
     downloadAttachment(csvAttachment.url),
     downloadAttachment(htmlAttachment.url),
     downloadAttachment(xmlAttachment.url)
   ]);
 
+  sendProgress("lendo CSV, HTML e XML");
   const csvItems = parseCsv(csvBuffer);
   const htmlItems = parseHtml(htmlBuffer);
   const xmlItems = parseXml(xmlBuffer);
+
+  sendProgress("cruzando dados da NF");
   const nfNumber = extractNfNumber(selectedTask.name, selectedTask.description, xmlItems);
   const rows = buildVfRows(csvItems, htmlItems, xmlItems);
 
   await fs.mkdir(config.outputDir, { recursive: true });
 
+  sendProgress("gerando planilha VF");
   const outputPath = path.join(config.outputDir, `VF_EXCEL_NF_${nfNumber}.xlsx`);
   writeVfWorkbook(rows, outputPath);
 
+  sendProgress("finalizando processamento");
   await markTaskAsProcessed(selectedTask.id);
 
   return {
@@ -175,7 +210,9 @@ async function processTask(selectedTask: { id: string; name: string; description
   };
 }
 
-export async function processNewestUnprocessedReceiptTask(): Promise<ProcessedTaskResult | null> {
+export async function processNewestUnprocessedReceiptTask(
+  reportProgress?: ProgressReporter
+): Promise<ProcessedTaskResult | null> {
   if (config.clickUpTaskId) {
     const forcedTask = await getTaskToProcess(config.clickUpStatusName, config.clickUpTaskId);
     const state = await loadState();
@@ -184,7 +221,7 @@ export async function processNewestUnprocessedReceiptTask(): Promise<ProcessedTa
       return null;
     }
 
-    return processTask(forcedTask);
+    return processTaskWithProgress(forcedTask, reportProgress);
   }
 
   const tasks = await getTasksByStatus(config.clickUpStatusName);
@@ -211,7 +248,7 @@ export async function processNewestUnprocessedReceiptTask(): Promise<ProcessedTa
       continue;
     }
 
-    return processTask(fullTask);
+    return processTaskWithProgress(fullTask, reportProgress);
   }
 
   return null;
