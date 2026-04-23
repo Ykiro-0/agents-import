@@ -9,7 +9,8 @@
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "watch:clickup": "tsx src/index.ts --watch",
-    "dashboard": "tsx watch src/index.ts --dashboard"
+    "dashboard": "tsx watch src/index.ts --dashboard",
+    "enrich:spreadsheet": "tsx src/tools/enrich-spreadsheet.ts"
   },
   "dependencies": {
     "cheerio": "^1.0.0",

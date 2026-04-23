@@ -1,0 +1,30 @@
+[
+  {
+    "section": "BEBIDAS",
+    "keywords": ["agua", "refrigerante", "suco", "cerveja", "energetico", "cha", "cafe"]
+  },
+  {
+    "section": "MERCEARIA",
+    "keywords": ["arroz", "feijao", "macarrao", "farinha", "acucar", "sal", "oleo", "molho", "tempero"]
+  },
+  {
+    "section": "BISCOITOS E SNACKS",
+    "keywords": ["biscoito", "bolacha", "salgadinho", "snack", "amendoim", "batata"]
+  },
+  {
+    "section": "HIGIENE",
+    "keywords": ["sabonete", "shampoo", "condicionador", "desodorante", "escova", "creme dental"]
+  },
+  {
+    "section": "LIMPEZA",
+    "keywords": ["detergente", "sabao", "amaciante", "desinfetante", "agua sanitaria", "limpador"]
+  },
+  {
+    "section": "LATICINIOS",
+    "keywords": ["leite", "iogurte", "queijo", "manteiga", "requeijao", "creme de leite"]
+  },
+  {
+    "section": "ACOUGUE",
+    "keywords": ["carne", "frango", "peixe", "suino", "linguica", "hamburguer"]
+  }
+]

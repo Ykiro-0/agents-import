@@ -148,7 +148,9 @@ Nao implementar antes dos validadores.
 |---|---|---|---|
 | [ ] | Definir fonte de secao/grupo/subgrupo |  | `config/` |
 | [ ] | Criar tabela de secao > grupo > subgrupo |  | `config/secoes-grupos.*` |
-| [ ] | Criar servico de sugestao de descricao reduzida |  | `src/services/kadia-enrichment.ts` |
+| [x] | Criar servico de sugestao de descricao reduzida | Kadia | `src/services/kadia-enrichment.ts` |
+| [x] | Criar agente enriquecido para planilha original (descricao + secao) | Kadia | `src/services/kadia-enrichment.ts`, `src/tools/enrich-spreadsheet.ts` |
+| [x] | Criar execucao com duas fontes (ClickUp e pasta local) | Kadia | `src/tools/enrich-spreadsheet.ts` |
 | [ ] | Criar campo de confianca da IA |  | `src/types.ts` |
 | [ ] | Marcar baixa confianca como pendente revisao |  | `src/validators/vf-row-validator.ts` |
 
