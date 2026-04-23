@@ -378,6 +378,167 @@ function PixelAgentSprite({ status, frameSeed }: { status: PixelAgentStatus; fra
   );
 }
 
+function getWorkstationCardClass(status: PixelAgentStatus): string {
+  if (status === "running") return "border-amber-300/35 bg-amber-500/10";
+  if (status === "completed") return "border-emerald-300/35 bg-emerald-500/10";
+  if (status === "blocked") return "border-rose-300/35 bg-rose-500/10";
+  return "border-slate-600/60 bg-slate-800/45";
+}
+
+function getWorkstationBadgeClass(status: PixelAgentStatus): string {
+  if (status === "running") return "border-amber-300/35 bg-amber-500/15 text-amber-100";
+  if (status === "completed") return "border-emerald-300/35 bg-emerald-500/15 text-emerald-100";
+  if (status === "blocked") return "border-rose-300/35 bg-rose-500/15 text-rose-100";
+  return "border-slate-500/40 bg-slate-700/30 text-slate-200";
+}
+
+function getWorkstationScreenColor(status: PixelAgentStatus, index: number): string {
+  if (status === "running") return index % 2 === 0 ? "#22d3ee" : "#38bdf8";
+  if (status === "completed") return "#34d399";
+  if (status === "blocked") return index % 2 === 0 ? "#fb7185" : "#f87171";
+  return "#64748b";
+}
+
+function getWorkstationScreenGlow(status: PixelAgentStatus): string {
+  if (status === "running") return "rgba(34, 211, 238, 0.55)";
+  if (status === "completed") return "rgba(16, 185, 129, 0.5)";
+  if (status === "blocked") return "rgba(251, 113, 133, 0.55)";
+  return "rgba(148, 163, 184, 0.35)";
+}
+
+function getWorkstationProgress(status: PixelAgentStatus): number {
+  if (status === "running") return 66;
+  if (status === "completed") return 100;
+  if (status === "blocked") return 40;
+  return 18;
+}
+
+function PixelControlRoom({
+  steps,
+  agentName
+}: {
+  steps: AgentPipelineStep[];
+  agentName: string;
+}) {
+  const stations = useMemo(() => {
+    const fallback: AgentPipelineStep[] = [
+      {
+        id: "agent-slot-1",
+        title: "Aguardando pipeline",
+        description: "Sem execucao ativa no momento.",
+        status: "pending"
+      },
+      {
+        id: "agent-slot-2",
+        title: "Aguardando pipeline",
+        description: "Sem execucao ativa no momento.",
+        status: "pending"
+      },
+      {
+        id: "agent-slot-3",
+        title: "Aguardando pipeline",
+        description: "Sem execucao ativa no momento.",
+        status: "pending"
+      }
+    ];
+
+    const base = steps.length ? steps : fallback;
+    const filled = [...base];
+
+    while (filled.length < 6) {
+      const slot = filled.length + 1;
+      filled.push({
+        id: `agent-slot-${slot}`,
+        title: "Slot disponivel",
+        description: "Aguardando novo agente.",
+        status: "pending"
+      });
+    }
+
+    return filled.slice(0, 6);
+  }, [steps]);
+
+  const running = stations.filter((step) => step.status === "running").length;
+  const completed = stations.filter((step) => step.status === "completed").length;
+
+  return (
+    <div className="mt-4 rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-4">
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80 p-4">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.2),transparent_34%),radial-gradient(circle_at_80%_16%,rgba(251,191,36,0.16),transparent_30%),linear-gradient(to_bottom,rgba(15,23,42,0.35),rgba(2,6,23,0.85))]" />
+        <div className="pointer-events-none absolute inset-x-0 top-[46%] h-px bg-cyan-200/20" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900/95 to-transparent" />
+
+        <div className="relative">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-cyan-200">Sala de Agentes</div>
+              <div className="mt-1 text-sm text-slate-200">Operacao visual do {agentName}</div>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="rounded-full border border-emerald-300/30 bg-emerald-500/15 px-3 py-1 text-emerald-100">
+                Concluidas: {completed}
+              </span>
+              <span className="rounded-full border border-amber-300/30 bg-amber-500/15 px-3 py-1 text-amber-100">
+                Em execucao: {running}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {stations.map((step, index) => (
+              <div key={step.id} className={["relative rounded-2xl border p-3 backdrop-blur-sm", getWorkstationCardClass(step.status)].join(" ")}>
+                <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-white/30" />
+
+                <div className="relative">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] uppercase tracking-[0.16em] text-slate-300">Mesa {String(index + 1).padStart(2, "0")}</span>
+                    <span className={["rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.14em]", getWorkstationBadgeClass(step.status)].join(" ")}>
+                      {getAgentStepLabel(step)}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-[auto_1fr] gap-3">
+                    <PixelAgentSprite frameSeed={index + 3} status={step.status} />
+
+                    <div className="space-y-2">
+                      <div className="rounded-xl border border-white/10 bg-slate-900/90 p-2">
+                        <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">PC {index + 1}</div>
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <div
+                            className="h-7 w-10 rounded-sm border border-slate-500/70"
+                            style={{
+                              backgroundColor: getWorkstationScreenColor(step.status, index),
+                              boxShadow: `0 0 12px ${getWorkstationScreenGlow(step.status)}`
+                            }}
+                          />
+                          <div className="h-[4px] flex-1 rounded-full bg-slate-700/70">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${getWorkstationProgress(step.status)}%`,
+                                backgroundColor: getWorkstationScreenColor(step.status, index)
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1.5">
+                        <div className="truncate text-xs font-semibold text-slate-100">{step.title}</div>
+                        <div className="truncate text-[11px] text-slate-400">{step.detail ?? step.description}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function IconButton({
   title,
   disabled,
@@ -901,12 +1062,10 @@ export function DashboardApp() {
                     </span>
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-amber-500/10 p-4">
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-200">Pixel Agents</div>
-                    <div className="mt-1 text-sm text-slate-200">
-                      Visual em pixel art dos agentes trabalhando por etapa da pipeline.
-                    </div>
-                  </div>
+                  <PixelControlRoom
+                    agentName={snapshot?.agent.name ?? "Kadia"}
+                    steps={snapshot?.agent.steps ?? []}
+                  />
 
                   <div className="mt-5 space-y-3">
                     {(snapshot?.agent.steps ?? []).map((step, index) => (
