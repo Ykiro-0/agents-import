@@ -336,9 +336,20 @@ function getPixelFrameInterval(status: PixelAgentStatus): number {
   return 900;
 }
 
-function PixelAgentSprite({ status, frameSeed }: { status: PixelAgentStatus; frameSeed: number }) {
+function PixelAgentSprite({
+  status,
+  frameSeed,
+  pixelSize = 6,
+  framed = true,
+  className
+}: {
+  status: PixelAgentStatus;
+  frameSeed: number;
+  pixelSize?: number;
+  framed?: boolean;
+  className?: string;
+}) {
   const [frameIndex, setFrameIndex] = useState(frameSeed % PIXEL_AGENT_FRAMES.length);
-  const pixelSize = 6;
   const intervalMs = getPixelFrameInterval(status);
 
   useEffect(() => {
@@ -353,36 +364,37 @@ function PixelAgentSprite({ status, frameSeed }: { status: PixelAgentStatus; fra
   const flatCells = frame.rows.join("").split("");
   const frameHeight = frame.rows.length;
 
-  return (
-    <div className="rounded-2xl border border-white/15 bg-slate-950/80 p-2 shadow-inner shadow-black/40">
-      <div
-        className="grid"
-        style={{
-          gridTemplateColumns: `repeat(${frame.width}, ${pixelSize}px)`,
-          gridTemplateRows: `repeat(${frameHeight}, ${pixelSize}px)`
-        }}
-      >
-        {flatCells.map((cell, index) => (
-          <span
-            key={`${index}-${cell}`}
-            style={{
-              width: `${pixelSize}px`,
-              height: `${pixelSize}px`,
-              backgroundColor: getPixelCellColor(cell, status, frameIndex),
-              imageRendering: "pixelated"
-            }}
-          />
-        ))}
-      </div>
+  const sprite = (
+    <div
+      className={["grid", className ?? ""].join(" ").trim()}
+      style={{
+        gridTemplateColumns: `repeat(${frame.width}, ${pixelSize}px)`,
+        gridTemplateRows: `repeat(${frameHeight}, ${pixelSize}px)`
+      }}
+    >
+      {flatCells.map((cell, index) => (
+        <span
+          key={`${index}-${cell}`}
+          style={{
+            width: `${pixelSize}px`,
+            height: `${pixelSize}px`,
+            backgroundColor: getPixelCellColor(cell, status, frameIndex),
+            imageRendering: "pixelated"
+          }}
+        />
+      ))}
     </div>
   );
-}
 
-function getWorkstationCardClass(status: PixelAgentStatus): string {
-  if (status === "running") return "border-amber-300/35 bg-amber-500/10";
-  if (status === "completed") return "border-emerald-300/35 bg-emerald-500/10";
-  if (status === "blocked") return "border-rose-300/35 bg-rose-500/10";
-  return "border-slate-600/60 bg-slate-800/45";
+  if (!framed) {
+    return sprite;
+  }
+
+  return (
+    <div className="rounded-2xl border border-white/15 bg-slate-950/80 p-2 shadow-inner shadow-black/40">
+      {sprite}
+    </div>
+  );
 }
 
 function getWorkstationBadgeClass(status: PixelAgentStatus): string {
@@ -392,6 +404,20 @@ function getWorkstationBadgeClass(status: PixelAgentStatus): string {
   return "border-slate-500/40 bg-slate-700/30 text-slate-200";
 }
 
+function getDeskSurfaceColor(status: PixelAgentStatus): string {
+  if (status === "running") return "#7a4a23";
+  if (status === "completed") return "#5f8d4e";
+  if (status === "blocked") return "#7f1d1d";
+  return "#5b3a1d";
+}
+
+function getDeskBorderColor(status: PixelAgentStatus): string {
+  if (status === "running") return "#d97706";
+  if (status === "completed") return "#16a34a";
+  if (status === "blocked") return "#e11d48";
+  return "#334155";
+}
+
 function getWorkstationScreenColor(status: PixelAgentStatus, index: number): string {
   if (status === "running") return index % 2 === 0 ? "#22d3ee" : "#38bdf8";
   if (status === "completed") return "#34d399";
@@ -399,19 +425,26 @@ function getWorkstationScreenColor(status: PixelAgentStatus, index: number): str
   return "#64748b";
 }
 
-function getWorkstationScreenGlow(status: PixelAgentStatus): string {
-  if (status === "running") return "rgba(34, 211, 238, 0.55)";
-  if (status === "completed") return "rgba(16, 185, 129, 0.5)";
-  if (status === "blocked") return "rgba(251, 113, 133, 0.55)";
-  return "rgba(148, 163, 184, 0.35)";
+function getAgentBubbleText(status: PixelAgentStatus): string {
+  if (status === "running") return "digitando...";
+  if (status === "completed") return "ok";
+  if (status === "blocked") return "preciso de input";
+  return "idle";
 }
 
-function getWorkstationProgress(status: PixelAgentStatus): number {
-  if (status === "running") return 66;
-  if (status === "completed") return 100;
-  if (status === "blocked") return 40;
-  return 18;
-}
+const OFFICE_LAYOUT: Array<{
+  deskX: number;
+  deskY: number;
+  agentX: number;
+  agentY: number;
+}> = [
+  { deskX: 18, deskY: 34, agentX: 18, agentY: 44 },
+  { deskX: 47, deskY: 34, agentX: 47, agentY: 44 },
+  { deskX: 18, deskY: 68, agentX: 18, agentY: 78 },
+  { deskX: 47, deskY: 68, agentX: 47, agentY: 78 },
+  { deskX: 82, deskY: 23, agentX: 82, agentY: 33 },
+  { deskX: 82, deskY: 70, agentX: 82, agentY: 80 }
+];
 
 function PixelControlRoom({
   steps,
@@ -445,7 +478,7 @@ function PixelControlRoom({
     const base = steps.length ? steps : fallback;
     const filled = [...base];
 
-    while (filled.length < 6) {
+    while (filled.length < OFFICE_LAYOUT.length) {
       const slot = filled.length + 1;
       filled.push({
         id: `agent-slot-${slot}`,
@@ -454,86 +487,142 @@ function PixelControlRoom({
         status: "pending"
       });
     }
-
-    return filled.slice(0, 6);
+    return filled.slice(0, OFFICE_LAYOUT.length);
   }, [steps]);
 
   const running = stations.filter((step) => step.status === "running").length;
   const completed = stations.filter((step) => step.status === "completed").length;
+  const blocked = stations.filter((step) => step.status === "blocked").length;
 
   return (
-    <div className="mt-4 rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-4">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80 p-4">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.2),transparent_34%),radial-gradient(circle_at_80%_16%,rgba(251,191,36,0.16),transparent_30%),linear-gradient(to_bottom,rgba(15,23,42,0.35),rgba(2,6,23,0.85))]" />
-        <div className="pointer-events-none absolute inset-x-0 top-[46%] h-px bg-cyan-200/20" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900/95 to-transparent" />
+    <div className="mt-4 rounded-3xl border border-cyan-300/20 bg-slate-950/70 p-4">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.2em] text-cyan-200">Pixel Office</div>
+          <div className="mt-1 text-sm text-slate-200">Sala ativa do {agentName}</div>
+        </div>
+        <div className="flex items-center gap-2 text-xs">
+          <span className="rounded-full border border-emerald-300/30 bg-emerald-500/15 px-3 py-1 text-emerald-100">
+            Concluidas: {completed}
+          </span>
+          <span className="rounded-full border border-amber-300/30 bg-amber-500/15 px-3 py-1 text-amber-100">
+            Em execucao: {running}
+          </span>
+          <span className="rounded-full border border-rose-300/30 bg-rose-500/15 px-3 py-1 text-rose-100">
+            Bloqueadas: {blocked}
+          </span>
+        </div>
+      </div>
 
-        <div className="relative">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.2em] text-cyan-200">Sala de Agentes</div>
-              <div className="mt-1 text-sm text-slate-200">Operacao visual do {agentName}</div>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="rounded-full border border-emerald-300/30 bg-emerald-500/15 px-3 py-1 text-emerald-100">
-                Concluidas: {completed}
-              </span>
-              <span className="rounded-full border border-amber-300/30 bg-amber-500/15 px-3 py-1 text-amber-100">
-                Em execucao: {running}
-              </span>
-            </div>
-          </div>
+      <div className="relative h-[500px] overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(125,211,252,0.18),transparent_35%),radial-gradient(circle_at_83%_13%,rgba(251,191,36,0.12),transparent_30%)]" />
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {stations.map((step, index) => (
-              <div key={step.id} className={["relative rounded-2xl border p-3 backdrop-blur-sm", getWorkstationCardClass(step.status)].join(" ")}>
-                <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-white/30" />
+        <div
+          className="absolute left-[2%] top-[2%] h-[96%] w-[62%] rounded-sm border border-black/35"
+          style={{
+            background:
+              "repeating-linear-gradient(0deg,#915e2f 0px,#915e2f 22px,#7f4e24 22px,#7f4e24 24px),repeating-linear-gradient(90deg,#9d6a35 0px,#9d6a35 22px,#7f4e24 22px,#7f4e24 24px)"
+          }}
+        />
+        <div
+          className="absolute right-[2%] top-[2%] h-[35%] w-[34%] rounded-sm border border-black/35"
+          style={{
+            background:
+              "repeating-linear-gradient(0deg,#d6d0c8 0px,#d6d0c8 20px,#c8c2ba 20px,#c8c2ba 22px),repeating-linear-gradient(90deg,#dfd9d1 0px,#dfd9d1 20px,#c8c2ba 20px,#c8c2ba 22px)"
+          }}
+        />
+        <div
+          className="absolute right-[2%] bottom-[2%] h-[57%] w-[34%] rounded-sm border border-black/35"
+          style={{
+            background:
+              "repeating-linear-gradient(0deg,#3f6f95 0px,#3f6f95 24px,#355f80 24px,#355f80 26px),repeating-linear-gradient(90deg,#4a7fa8 0px,#4a7fa8 24px,#355f80 24px,#355f80 26px)"
+          }}
+        />
 
-                <div className="relative">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] uppercase tracking-[0.16em] text-slate-300">Mesa {String(index + 1).padStart(2, "0")}</span>
-                    <span className={["rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.14em]", getWorkstationBadgeClass(step.status)].join(" ")}>
-                      {getAgentStepLabel(step)}
-                    </span>
-                  </div>
+        <div className="pointer-events-none absolute left-[65.5%] top-[2%] h-[96%] w-[3px] bg-black/55" />
+        <div className="pointer-events-none absolute right-[2%] top-[37.5%] h-[3px] w-[34%] bg-black/55" />
 
-                  <div className="mt-3 grid grid-cols-[auto_1fr] gap-3">
-                    <PixelAgentSprite frameSeed={index + 3} status={step.status} />
+        <div className="absolute left-[6%] top-[8%] flex gap-2">
+          <div className="h-8 w-12 rounded-sm border border-black/35 bg-[#8f5f2f]" />
+          <div className="h-8 w-12 rounded-sm border border-black/35 bg-[#8f5f2f]" />
+        </div>
+        <div className="absolute right-[7%] top-[8%] h-8 w-9 rounded-sm border border-black/35 bg-slate-200/80" />
+        <div className="absolute right-[8%] bottom-[11%] h-10 w-10 rounded-sm border border-black/35 bg-emerald-200/30" />
 
-                    <div className="space-y-2">
-                      <div className="rounded-xl border border-white/10 bg-slate-900/90 p-2">
-                        <div className="text-[10px] uppercase tracking-[0.14em] text-slate-500">PC {index + 1}</div>
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <div
-                            className="h-7 w-10 rounded-sm border border-slate-500/70"
-                            style={{
-                              backgroundColor: getWorkstationScreenColor(step.status, index),
-                              boxShadow: `0 0 12px ${getWorkstationScreenGlow(step.status)}`
-                            }}
-                          />
-                          <div className="h-[4px] flex-1 rounded-full bg-slate-700/70">
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{
-                                width: `${getWorkstationProgress(step.status)}%`,
-                                backgroundColor: getWorkstationScreenColor(step.status, index)
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1.5">
-                        <div className="truncate text-xs font-semibold text-slate-100">{step.title}</div>
-                        <div className="truncate text-[11px] text-slate-400">{step.detail ?? step.description}</div>
-                      </div>
-                    </div>
-                  </div>
+        {stations.map((step, index) => {
+          const slot = OFFICE_LAYOUT[index] ?? OFFICE_LAYOUT[0];
+          return (
+            <div key={step.id}>
+              <div
+                className="absolute z-10 h-[56px] w-[88px] -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${slot.deskX}%`, top: `${slot.deskY}%` }}
+              >
+                <div
+                  className="relative h-full w-full rounded-[6px] border-[3px]"
+                  style={{
+                    backgroundColor: getDeskSurfaceColor(step.status),
+                    borderColor: getDeskBorderColor(step.status)
+                  }}
+                >
+                  <div className="absolute left-2 top-1 h-[3px] w-14 bg-black/35" />
+                  <div className="absolute left-2 top-2 h-2 w-6 rounded-[2px] bg-black/25" />
+                  <div
+                    className="absolute left-3 top-3 h-7 w-8 rounded-[2px] border-[2px] border-slate-800"
+                    style={{
+                      backgroundColor: getWorkstationScreenColor(step.status, index),
+                      boxShadow: "0 0 8px rgba(15, 23, 42, 0.45)"
+                    }}
+                  />
+                  <div className="absolute left-14 top-[18px] h-3 w-3 rounded-[2px] border border-black/35 bg-stone-200/80" />
+                  <div className="absolute left-14 top-[30px] h-1.5 w-3 rounded bg-black/35" />
+                  <div className="absolute bottom-1 left-5 h-[3px] w-8 rounded bg-black/40" />
                 </div>
               </div>
-            ))}
-          </div>
+
+              <div
+                className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${slot.agentX}%`, top: `${slot.agentY}%` }}
+              >
+                <PixelAgentSprite frameSeed={index + 9} pixelSize={3} status={step.status} framed={false} />
+              </div>
+
+              <div
+                className="absolute z-30 -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${slot.agentX}%`, top: `${slot.agentY - 9}%` }}
+              >
+                <div className={["rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.12em] backdrop-blur-sm", getWorkstationBadgeClass(step.status)].join(" ")}>
+                  {getAgentBubbleText(step.status)}
+                </div>
+              </div>
+
+              <div
+                className="absolute z-30 -translate-x-1/2"
+                style={{ left: `${slot.agentX}%`, top: `${slot.agentY + 7.8}%` }}
+              >
+                <div className="max-w-[170px] truncate rounded-md bg-black/45 px-2 py-1 text-[10px] text-slate-200">
+                  {step.title}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        <div className="absolute bottom-3 left-3 rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-[11px] text-slate-300">
+          {stations.length} agentes posicionados
         </div>
+        <div className="absolute bottom-3 right-3 rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-[11px] text-slate-300">
+          Status em tempo real da pipeline
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-2 md:grid-cols-3">
+        {stations.map((step, index) => (
+          <div key={`${step.id}-legend`} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-slate-300">
+            <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500">Mesa {String(index + 1).padStart(2, "0")}</div>
+            <div className="mt-1 truncate font-medium text-slate-100">{step.title}</div>
+            <div className="mt-1 truncate text-[11px] text-slate-400">{step.detail ?? step.description}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
