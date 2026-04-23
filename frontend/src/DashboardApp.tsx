@@ -195,6 +195,189 @@ function getAgentStepLabel(step: AgentPipelineStep): string {
   return "Pendente";
 }
 
+type PixelAgentStatus = AgentPipelineStep["status"];
+
+interface PixelAgentFrame {
+  width: number;
+  rows: string[];
+}
+
+const PIXEL_AGENT_FRAMES: PixelAgentFrame[] = [
+  {
+    width: 16,
+    rows: [
+      "................",
+      ".....HHHH.......",
+      "....HSSSSH......",
+      "...HSEEESH......",
+      "...HSSSSSH......",
+      "....HSSSH.......",
+      ".....BBBB.......",
+      "....BBTBBB......",
+      "...BBTTTBBB.....",
+      "..MMMMMMMMMM....",
+      "..MCCCCCCCCM....",
+      "..MMMMMMMMMM....",
+      "...DDDDDDDD.....",
+      "...D......D.....",
+      "...D......D.....",
+      "......W........."
+    ]
+  },
+  {
+    width: 16,
+    rows: [
+      "................",
+      ".....HHHH.......",
+      "....HSSSSH......",
+      "...HSEEESH......",
+      "...HSSSSSH......",
+      "....HSSSH.......",
+      ".....BBBB.......",
+      "...BBTTTBBB.....",
+      "....BBTBBB......",
+      "..MMMMMMMMMM....",
+      "..MCCCCCCCCM....",
+      "..MMMMMMMMMM....",
+      "...DDDDDDDD.....",
+      "...D......D.....",
+      "...D......D.....",
+      "........W......."
+    ]
+  },
+  {
+    width: 16,
+    rows: [
+      "................",
+      ".....HHHH.......",
+      "....HSSSSH......",
+      "...HSEEESH......",
+      "...HSSSSSH......",
+      "....HSSSH.......",
+      ".....BBBB.......",
+      "....BBTBBB......",
+      "...BBTTTBBB.....",
+      "..MMMMMMMMMM....",
+      "..MCCCCCCCCM....",
+      "..MMMMMMMMMM....",
+      "...DDDDDDDD.....",
+      "...D......D.....",
+      "...D......D.....",
+      "....W..........."
+    ]
+  }
+];
+
+function getPixelBodyColor(status: PixelAgentStatus): string {
+  if (status === "running") {
+    return "#f59e0b";
+  }
+
+  if (status === "completed") {
+    return "#22c55e";
+  }
+
+  if (status === "blocked") {
+    return "#ef4444";
+  }
+
+  return "#64748b";
+}
+
+function getPixelScreenColor(status: PixelAgentStatus, frameIndex: number): string {
+  if (status === "running") {
+    return frameIndex % 2 === 0 ? "#22d3ee" : "#38bdf8";
+  }
+
+  if (status === "completed") {
+    return "#34d399";
+  }
+
+  if (status === "blocked") {
+    return frameIndex % 2 === 0 ? "#f87171" : "#fb7185";
+  }
+
+  return "#94a3b8";
+}
+
+function getPixelSparkColor(status: PixelAgentStatus, frameIndex: number): string {
+  if (status === "running") {
+    return frameIndex % 2 === 0 ? "#fde047" : "#f59e0b";
+  }
+
+  if (status === "blocked") {
+    return "#f97316";
+  }
+
+  if (status === "completed") {
+    return "#86efac";
+  }
+
+  return "transparent";
+}
+
+function getPixelCellColor(cell: string, status: PixelAgentStatus, frameIndex: number): string {
+  if (cell === "H") return "#111827";
+  if (cell === "S") return "#fbcaa4";
+  if (cell === "E") return "#0f172a";
+  if (cell === "B") return getPixelBodyColor(status);
+  if (cell === "T") return status === "blocked" ? "#dc2626" : "#94a3b8";
+  if (cell === "M") return "#334155";
+  if (cell === "C") return getPixelScreenColor(status, frameIndex);
+  if (cell === "D") return "#475569";
+  if (cell === "W") return getPixelSparkColor(status, frameIndex);
+  return "transparent";
+}
+
+function getPixelFrameInterval(status: PixelAgentStatus): number {
+  if (status === "running") return 240;
+  if (status === "blocked") return 420;
+  if (status === "pending") return 680;
+  return 900;
+}
+
+function PixelAgentSprite({ status, frameSeed }: { status: PixelAgentStatus; frameSeed: number }) {
+  const [frameIndex, setFrameIndex] = useState(frameSeed % PIXEL_AGENT_FRAMES.length);
+  const pixelSize = 6;
+  const intervalMs = getPixelFrameInterval(status);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setFrameIndex((current) => (current + 1) % PIXEL_AGENT_FRAMES.length);
+    }, intervalMs);
+
+    return () => window.clearInterval(timer);
+  }, [intervalMs]);
+
+  const frame = PIXEL_AGENT_FRAMES[frameIndex];
+  const flatCells = frame.rows.join("").split("");
+  const frameHeight = frame.rows.length;
+
+  return (
+    <div className="rounded-2xl border border-white/15 bg-slate-950/80 p-2 shadow-inner shadow-black/40">
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: `repeat(${frame.width}, ${pixelSize}px)`,
+          gridTemplateRows: `repeat(${frameHeight}, ${pixelSize}px)`
+        }}
+      >
+        {flatCells.map((cell, index) => (
+          <span
+            key={`${index}-${cell}`}
+            style={{
+              width: `${pixelSize}px`,
+              height: `${pixelSize}px`,
+              backgroundColor: getPixelCellColor(cell, status, frameIndex),
+              imageRendering: "pixelated"
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function IconButton({
   title,
   disabled,
@@ -718,18 +901,28 @@ export function DashboardApp() {
                     </span>
                   </div>
 
+                  <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-amber-500/10 p-4">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-200">Pixel Agents</div>
+                    <div className="mt-1 text-sm text-slate-200">
+                      Visual em pixel art dos agentes trabalhando por etapa da pipeline.
+                    </div>
+                  </div>
+
                   <div className="mt-5 space-y-3">
                     {(snapshot?.agent.steps ?? []).map((step, index) => (
                       <div key={step.id} className={["rounded-2xl border p-4", getAgentStepClass(step)].join(" ")}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-3">
-                            <div className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/15 text-xs font-semibold">
-                              {index + 1}
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold">{step.title}</div>
-                              <div className="mt-1 text-sm opacity-90">{step.description}</div>
-                              {step.detail ? <div className="mt-2 text-xs opacity-80">Detalhe: {step.detail}</div> : null}
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-4">
+                            <PixelAgentSprite frameSeed={index} status={step.status} />
+                            <div className="flex items-start gap-3">
+                              <div className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/15 text-xs font-semibold">
+                                {index + 1}
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold">{step.title}</div>
+                                <div className="mt-1 text-sm opacity-90">{step.description}</div>
+                                {step.detail ? <div className="mt-2 text-xs opacity-80">Detalhe: {step.detail}</div> : null}
+                              </div>
                             </div>
                           </div>
                           <span className="rounded-full border border-white/15 bg-black/20 px-3 py-1 text-xs">
