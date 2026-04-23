@@ -776,26 +776,26 @@ export function DashboardApp() {
 
             {activeView === "list" ? (
               <>
-                <div className="col-span-8 rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-glow backdrop-blur-xl max-lg:col-span-12">
+                <div className="col-span-12 rounded-3xl border border-white/10 bg-slate-900/70 p-4 shadow-glow backdrop-blur-xl">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <div className="text-xs uppercase tracking-[0.14em] text-slate-400">List</div>
-                      <div className="mt-2 text-lg font-semibold">Tela principal das NFs</div>
+                      <div className="mt-1 text-base font-semibold">Tela principal das NFs</div>
                     </div>
-                    <div className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300">
+                    <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-slate-300">
                       {snapshot?.targetTasks.length ?? 0} NFs em foco
                     </div>
                   </div>
 
-                  <div className="mt-5 overflow-x-auto">
-                    <table className="w-full border-collapse text-sm">
+                  <div className="mt-4 overflow-x-auto">
+                    <table className="w-full border-collapse text-xs">
                       <thead>
                         <tr className="text-left text-slate-400">
-                          <th className="border-b border-white/10 px-3 py-3 font-medium">NF</th>
-                          <th className="border-b border-white/10 px-3 py-3 font-medium">Fornecedor</th>
-                          <th className="border-b border-white/10 px-3 py-3 font-medium">Status</th>
-                          <th className="border-b border-white/10 px-3 py-3 font-medium">Data</th>
-                          <th className="border-b border-white/10 px-3 py-3 font-medium">Detalhes</th>
+                          <th className="border-b border-white/10 px-2 py-2.5 font-medium">NF</th>
+                          <th className="border-b border-white/10 px-2 py-2.5 font-medium">Fornecedor</th>
+                          <th className="border-b border-white/10 px-2 py-2.5 font-medium">Status</th>
+                          <th className="border-b border-white/10 px-2 py-2.5 font-medium">Data</th>
+                          <th className="border-b border-white/10 px-2 py-2.5 font-medium">Acoes</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -811,27 +811,27 @@ export function DashboardApp() {
                                 selected ? "bg-white/[0.04]" : ""
                               ].join(" ")}
                             >
-                              <td className="border-b border-white/10 px-3 py-4 align-middle">
-                                <div className="font-semibold text-slate-100">{meta.nf}</div>
-                                <div className="text-xs text-slate-500">{task.id}</div>
+                              <td className="border-b border-white/10 px-2 py-3 align-middle">
+                                <div className="text-sm font-semibold text-slate-100">{meta.nf}</div>
+                                <div className="text-[11px] text-slate-500">{task.id}</div>
                               </td>
-                              <td className="border-b border-white/10 px-3 py-4 align-middle">
-                                <div className="font-medium text-slate-200">{meta.fornecedor}</div>
-                                <div className="text-xs text-slate-500">{task.name}</div>
+                              <td className="border-b border-white/10 px-2 py-3 align-middle">
+                                <div className="text-sm font-medium text-slate-200">{meta.fornecedor}</div>
+                                <div className="text-[11px] text-slate-500">{task.name}</div>
                               </td>
-                              <td className="border-b border-white/10 px-3 py-4 align-middle">
-                                <span className={["inline-flex rounded-full border px-3 py-1 text-xs", getTaskBadgeClass(task)].join(" ")}>
+                              <td className="border-b border-white/10 px-2 py-3 align-middle">
+                                <span className={["inline-flex rounded-full border px-2.5 py-1 text-[11px]", getTaskBadgeClass(task)].join(" ")}>
                                   {getTaskStatusLabel(task)}
                                 </span>
                               </td>
-                              <td className="border-b border-white/10 px-3 py-4 align-middle text-slate-300">{fmt(task.dateUpdated)}</td>
-                              <td className="border-b border-white/10 px-3 py-4 align-middle">
+                              <td className="border-b border-white/10 px-2 py-3 align-middle text-[11px] text-slate-300">{fmt(task.dateUpdated)}</td>
+                              <td className="border-b border-white/10 px-2 py-3 align-middle">
                                 <button
-                                  className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-slate-100 transition hover:bg-white/[0.07]"
+                                  className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-slate-100 transition hover:bg-white/[0.07]"
                                   onClick={() => setSelectedTaskId(task.id)}
                                   type="button"
                                 >
-                                  Ver detalhes
+                                  Selecionar
                                 </button>
                               </td>
                             </tr>
@@ -840,92 +840,6 @@ export function DashboardApp() {
                       </tbody>
                     </table>
                   </div>
-                </div>
-
-                <div className="col-span-4 rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-glow backdrop-blur-xl max-lg:col-span-12">
-                  <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Detalhes da NF</div>
-                  {selectedTask && selectedMeta ? (
-                    <div className="mt-4 space-y-4">
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                        <div className="text-lg font-semibold">{selectedMeta.fornecedor}</div>
-                        <div className="mt-1 text-sm text-slate-400">NF {selectedMeta.nf}</div>
-                        <div className="mt-3 text-xs text-slate-500">Atualizada em {fmt(selectedTask.dateUpdated)}</div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { label: "CSV", value: selectedTask.hasCsv },
-                          { label: "HTML", value: selectedTask.hasHtml },
-                          { label: "XML", value: selectedTask.hasXml }
-                        ].map((attachment) => (
-                          <div
-                            key={attachment.label}
-                            className={[
-                              "rounded-2xl border px-3 py-3 text-center text-xs",
-                              attachment.value
-                                ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
-                                : "border-rose-400/20 bg-rose-500/10 text-rose-200"
-                            ].join(" ")}
-                          >
-                            {attachment.label}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                        <div className="text-sm text-slate-300">Status operacional</div>
-                        <div className="mt-2 text-lg font-semibold">{getTaskStatusLabel(selectedTask)}</div>
-                        <div className="mt-2 text-sm text-slate-400">
-                          {selectedTask.processingStage ?? "Sem processamento ativo neste momento."}
-                        </div>
-                      </div>
-
-                      <FileCard
-                        task={selectedTask}
-                        deleting={Boolean(selectedTask.latestDeleteUrl && deleting.has(selectedTask.latestDeleteUrl))}
-                        onDelete={() => {
-                          if (selectedTask.latestDeleteUrl) {
-                            void handleDelete(selectedTask.latestDeleteUrl);
-                          }
-                        }}
-                      />
-
-                      <div className="flex gap-2">
-                        <button
-                          className="inline-flex flex-1 items-center justify-center rounded-full border border-white/10 bg-gradient-to-r from-blue-700 to-blue-500 px-4 py-3 text-sm text-blue-50 shadow-lg shadow-blue-900/30 transition hover:-translate-y-px"
-                          onClick={() => {
-                            void handleReprocess(selectedTask.id);
-                          }}
-                          type="button"
-                        >
-                          <svg
-                            className={["mr-2 h-[18px] w-[18px]", reprocessing.has(selectedTask.id) ? "animate-spin" : ""].join(" ")}
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.9"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M21 12a9 9 0 0 1-15.5 6.36" />
-                            <path d="M3 12A9 9 0 0 1 18.5 5.64" />
-                            <path d="M7 17H5v-2" />
-                            <path d="M17 7h2v2" />
-                          </svg>
-                          Reprocessar
-                        </button>
-                        <button
-                          className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200 transition hover:bg-white/[0.07]"
-                          onClick={() => setActiveView("approval")}
-                          type="button"
-                        >
-                          Ir para aprovacao
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-4 rounded-2xl border border-dashed border-white/10 bg-white/[0.025] p-4 text-sm text-slate-400">
-                      Nenhuma NF carregada no momento.
-                    </div>
-                  )}
                 </div>
               </>
             ) : null}
