@@ -30,6 +30,7 @@ export interface HtmlItem {
 }
 
 export interface XmlItem {
+  codigoFornecedor: string;
   descricao: string;
   ean: string;
   unidade: string;
@@ -42,27 +43,33 @@ export interface XmlItem {
 }
 
 export interface VfRow {
-  statusImportado: string;
-  status: string;
-  codigoErp: string;
-  secao: string;
-  grupo: string;
-  subgrupo: string;
+  produtoCriado: string;
+  auxiliarCriado: string;
+  produtoId: string;
+  secaoId: string;
+  grupoId: string;
+  subgrupoId: string;
+  marcaId: string;
   descricao: string;
   descricaoReduzida: string;
-  unidadeCompra: string;
-  unidadeVenda: string;
-  origem: string;
-  situacaoFiscal: string;
-  ncm2: string;
-  ncm8: string;
-  aliquota: string;
-  tipoCodigo: string;
-  ean: string;
-  fatorConversao: number;
-  possuiEan: boolean;
-  custo: number;
-  numeroNf: string;
+  pesoVariavel: string;
+  unidadeDeCompra: string;
+  unidadeDeVenda: string;
+  tabelaA: string;
+  situacaoFiscalId: string;
+  generoId: string;
+  nomeclaturaMercosulId: string;
+  itensImpostosFederais: string;
+  naturezaDeImpostoFederalId: string;
+  tipo: string;
+  id: string;
+  fator: number;
+  eanTributado: string;
+  custoProduto: number;
+  precoVenda1: string;
+  precoOferta1: string;
+  margemPreco1: string;
+  identificadorDeOrigem: string;
 }
 
 export interface ProcessedTaskResult {
@@ -79,6 +86,16 @@ export interface ProcessingStatus {
   taskName?: string;
   stage?: string;
   startedAt?: string;
+}
+
+export interface AgCadIssue {
+  source: "csv" | "html" | "xml" | "cross";
+  severity: "warning" | "error";
+  message: string;
+}
+
+export interface AgCadAnalysis {
+  issues: AgCadIssue[];
 }
 
 export interface AutomationState {
@@ -112,6 +129,9 @@ export interface DashboardTaskInfo {
   alreadyProcessed: boolean;
   processingStage?: string;
   latestDownloadUrl?: string;
+  latestDeleteUrl?: string;
+  hasGeneratedFile: boolean;
+  generatedFileName?: string;
 }
 
 export interface StatusCount {

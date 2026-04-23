@@ -5,8 +5,9 @@ import { config } from "../config.js";
 import { parseCsv } from "../parsers/csv.js";
 import { parseHtml } from "../parsers/html.js";
 import { parseXml } from "../parsers/xml.js";
+import { analyzeAgCadInputs, formatAgCadIssues } from "./ag-cad-agent.js";
 import { loadState, markTaskAsProcessed } from "./state-store.js";
-import type { ProcessingStatus } from "../types.js";
+import type { AgCadIssue, ProcessingStatus } from "../types.js";
 import type { ClickUpAttachment, CsvItem, HtmlItem, ProcessedTaskResult, VfRow, XmlItem } from "../types.js";
 import { writeVfWorkbook } from "./vf-workbook.js";
 
@@ -19,6 +20,66 @@ function normalizeText(value: string): string {
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase();
+}
+
+function buildReducedDescription(value: string): string {
+  return value.trim().slice(0, 20);
+}
+
+function normalizeReference(value: string): string {
+  return value.replace(/^0+/, "").trim();
+}
+
+function extractReferenceCandidates(...values: Array<string | undefined>): string[] {
+  const candidates = new Set<string>();
+
+  for (const value of values) {
+    if (!value) {
+      continue;
+    }
+
+    const matches = value.match(/\d{4,}/g) ?? [];
+
+    for (const match of matches) {
+      const normalized = normalizeReference(match);
+
+      if (normalized) {
+        candidates.add(normalized);
+      }
+    }
+  }
+
+  return [...candidates];
+}
+
+function xmlMatchesReference(xmlItem: XmlItem, references: string[]): boolean {
+  if (references.length === 0) {
+    return false;
+  }
+
+  const xmlReferenceCandidates = extractReferenceCandidates(xmlItem.codigoFornecedor, xmlItem.descricao);
+
+  return references.some((reference) => xmlReferenceCandidates.includes(reference));
+}
+
+function buildTabelaA(origem: string): string {
+  const firstDigit = origem.trim().charAt(0);
+
+  if (firstDigit === "1" || firstDigit === "2") {
+    return "2";
+  }
+
+  return "0";
+}
+
+function ensureAgCadCanProceed(issues: AgCadIssue[]): void {
+  const blockingIssues = issues.filter((issue) => issue.severity === "error");
+
+  if (blockingIssues.length === 0) {
+    return;
+  }
+
+  throw new Error(`AG-CAD bloqueou a geracao da planilha: ${formatAgCadIssues(blockingIssues)}`);
 }
 
 function extractNfNumber(taskName: string, taskDescription: string, xmlItems: XmlItem[]): string {
@@ -62,8 +123,14 @@ function hasRequiredAttachments(attachments: ClickUpAttachment[]): boolean {
 }
 
 function findXmlItem(csvItem: CsvItem, xmlItems: XmlItem[]): XmlItem | undefined {
+  const descriptionReferences = extractReferenceCandidates(csvItem.descricao);
+
   return xmlItems.find((xmlItem) => {
     if (csvItem.ean && xmlItem.ean && csvItem.ean === xmlItem.ean) {
+      return true;
+    }
+
+    if (xmlMatchesReference(xmlItem, descriptionReferences)) {
       return true;
     }
 
@@ -89,27 +156,33 @@ function buildVfRows(csvItems: CsvItem[], htmlItems: HtmlItem[], xmlItems: XmlIt
     const descricao = csvItem.descricao || xmlItem?.descricao || htmlItem?.descricao || "";
 
     return {
-      statusImportado: "",
-      status: "PENDENTE",
-      codigoErp: "",
-      secao: "",
-      grupo: "",
-      subgrupo: "",
+      produtoCriado: "",
+      auxiliarCriado: "",
+      produtoId: "",
+      secaoId: "",
+      grupoId: "",
+      subgrupoId: "",
+      marcaId: "",
       descricao,
-      descricaoReduzida: descricao.slice(0, 60),
-      unidadeCompra: xmlItem?.unidade ?? "",
-      unidadeVenda: xmlItem?.unidade ?? "",
-      origem: xmlItem?.origem ?? "",
-      situacaoFiscal: xmlItem?.situacaoFiscal ?? "",
-      ncm2: xmlItem?.ncm2 ?? "",
-      ncm8: xmlItem?.ncm8 ?? "",
-      aliquota: "01;20",
-      tipoCodigo: ean ? "EAN" : "LITERAL",
-      ean,
-      fatorConversao: 1,
-      possuiEan: Boolean(ean),
-      custo: xmlItem?.custo ?? 0,
-      numeroNf: xmlItem?.numeroNf ?? ""
+      descricaoReduzida: buildReducedDescription(descricao),
+      pesoVariavel: "",
+      unidadeDeCompra: xmlItem?.unidade ?? "",
+      unidadeDeVenda: xmlItem?.unidade ?? "",
+      tabelaA: buildTabelaA(xmlItem?.origem ?? ""),
+      situacaoFiscalId: "1",
+      generoId: xmlItem?.ncm2 ?? "",
+      nomeclaturaMercosulId: xmlItem?.ncm8 ?? "",
+      itensImpostosFederais: "01;02",
+      naturezaDeImpostoFederalId: "",
+      tipo: ean ? "EAN" : "LITERAL",
+      id: ean,
+      fator: 1,
+      eanTributado: ean ? "true" : "",
+      custoProduto: xmlItem?.custo ?? 0,
+      precoVenda1: "",
+      precoOferta1: "",
+      margemPreco1: "",
+      identificadorDeOrigem: xmlItem?.numeroNf ?? ""
     };
   });
 }
@@ -188,11 +261,38 @@ async function processTaskWithProgress(
   const htmlItems = parseHtml(htmlBuffer);
   const xmlItems = parseXml(xmlBuffer);
 
+  sendProgress("AG-CAD analisando estrutura");
+  const agCadAnalysis = analyzeAgCadInputs(
+    csvItems,
+    htmlItems,
+    xmlItems,
+    (csvItem) => findXmlItem(csvItem, xmlItems),
+    (csvItem) => findHtmlItem(csvItem, htmlItems)
+  );
+  ensureAgCadCanProceed(agCadAnalysis.issues);
+
   sendProgress("cruzando dados da NF");
   const nfNumber = extractNfNumber(selectedTask.name, selectedTask.description, xmlItems);
   const rows = buildVfRows(csvItems, htmlItems, xmlItems);
 
   await fs.mkdir(config.outputDir, { recursive: true });
+
+  const issuesSummary = formatAgCadIssues(agCadAnalysis.issues);
+  await fs.writeFile(
+    path.join(config.outputDir, `AG_CAD_REPORT_${nfNumber}.json`),
+    JSON.stringify(
+      {
+        taskId: selectedTask.id,
+        taskName: selectedTask.name,
+        nfNumber,
+        issues: agCadAnalysis.issues,
+        summary: issuesSummary
+      },
+      null,
+      2
+    ),
+    "utf8"
+  );
 
   sendProgress("gerando planilha VF");
   const outputPath = path.join(config.outputDir, `VF_EXCEL_NF_${nfNumber}.xlsx`);

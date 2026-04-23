@@ -5,23 +5,34 @@
   "description": "Automacao de cadastro VF a partir de anexos de tarefas do ClickUp.",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && npm run client:build",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "watch:clickup": "tsx src/index.ts --watch",
-    "dashboard": "tsx watch src/index.ts --dashboard",
-    "enrich:spreadsheet": "tsx src/tools/enrich-spreadsheet.ts"
+    "dashboard": "npm run client:build && tsx watch src/index.ts --dashboard",
+    "enrich:spreadsheet": "tsx src/tools/enrich-spreadsheet.ts",
+    "client:dev": "vite --config frontend/vite.config.ts",
+    "client:build": "vite build --config frontend/vite.config.ts"
   },
   "dependencies": {
     "cheerio": "^1.0.0",
     "csv-parse": "^5.5.6",
     "dotenv": "^16.4.5",
     "fast-xml-parser": "^4.5.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.0.4",
     "@types/node": "^22.10.1",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vite": "^7.1.10"
   }
 }

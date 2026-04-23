@@ -38,6 +38,7 @@ export function parseXml(buffer: Buffer): XmlItem[] {
     const ncm8 = onlyDigits(String(prod.NCM ?? ""));
 
     return {
+      codigoFornecedor: String(prod.cProd ?? "").trim(),
       descricao: String(prod.xProd ?? "").trim(),
       ean: String(prod.cEAN ?? prod.cEANTrib ?? "").trim(),
       unidade: String(prod.uCom ?? prod.uTrib ?? "").trim(),

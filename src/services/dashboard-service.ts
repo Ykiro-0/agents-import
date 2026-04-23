@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { getTask, getTasksByStatus } from "../clients/clickup.js";
 import { config } from "../config.js";
 import type { ClickUpTask, DashboardTaskInfo, MonitorSnapshot, StatusCount } from "../types.js";
@@ -29,7 +31,8 @@ function mapTask(task: ClickUpTask, processedIds: string[]): DashboardTaskInfo {
     hasHtml,
     hasXml,
     readyToProcess: hasCsv && hasHtml && hasXml,
-    alreadyProcessed: processedIds.includes(task.id)
+    alreadyProcessed: processedIds.includes(task.id),
+    hasGeneratedFile: false
   };
 }
 
@@ -84,13 +87,19 @@ export async function getDashboardSnapshot(): Promise<MonitorSnapshot> {
   const mappedTasks = hydratedTasks.map((task) => {
     const taskInfo = mapTask(task, state.processedTaskIds);
     const latestRun = latestRunByTaskId.get(task.id);
+    const outputPath = latestRun?.outputPath;
+    const hasGeneratedFile = Boolean(outputPath && fs.existsSync(outputPath));
+    const generatedFileName = outputPath ? path.basename(outputPath) : undefined;
 
     return {
       ...taskInfo,
       processingStage: monitorState.processing.active && monitorState.processing.taskId === task.id
         ? monitorState.processing.stage
         : undefined,
-      latestDownloadUrl: latestRun?.downloadUrl
+      latestDownloadUrl: hasGeneratedFile ? latestRun?.downloadUrl : undefined,
+      latestDeleteUrl: hasGeneratedFile && generatedFileName ? `/api/files/${encodeURIComponent(generatedFileName)}` : undefined,
+      hasGeneratedFile,
+      generatedFileName
     };
   });
 
