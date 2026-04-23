@@ -444,7 +444,7 @@ export function DashboardApp() {
       title: "REGISTROS",
       items: [
         { key: "logs", label: "Logs" },
-        { key: "files", label: "Arquivos de Teste" }
+        { key: "files", label: "Areas de testes" }
       ]
     },
     {
@@ -508,11 +508,11 @@ export function DashboardApp() {
         <aside
           className={[
             "sticky top-0 hidden h-screen shrink-0 border-r border-white/10 bg-slate-950/95 transition-all duration-300 lg:block",
-            sidebarCollapsed ? "w-[72px]" : "w-[248px]"
+            sidebarCollapsed ? "w-[64px]" : "w-[140px]"
           ].join(" ")}
         >
           <div className="flex h-full flex-col">
-            <div className={["flex items-center border-b border-white/8", sidebarCollapsed ? "justify-center px-2 py-4" : "justify-between px-4 py-4"].join(" ")}>
+            <div className={["flex items-center border-b border-white/8", sidebarCollapsed ? "justify-center px-2 py-4" : "justify-between px-3 py-4"].join(" ")}>
               <div className="flex items-center gap-2 overflow-hidden">
                 <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-violet-500" />
                 {!sidebarCollapsed ? <span className="text-sm font-medium text-slate-100">AG-CAD</span> : null}
@@ -542,12 +542,12 @@ export function DashboardApp() {
               )}
             </div>
 
-            <div className="flex-1 overflow-y-auto px-3 py-4">
+            <div className="flex-1 overflow-y-auto px-1.5 py-4">
               <div className="space-y-4">
                 {sidebarGroups.map((group) => (
                   <div key={group.title}>
                     {!sidebarCollapsed ? (
-                      <div className="mb-2 px-3 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">
+                      <div className="mb-2 px-1.5 text-[9px] font-medium uppercase tracking-[0.16em] text-slate-500">
                         {group.title}
                       </div>
                     ) : null}
@@ -563,7 +563,7 @@ export function DashboardApp() {
                               active
                                 ? "border-blue-400/20 bg-blue-500/12 text-slate-50"
                                 : "text-slate-400 hover:border-white/10 hover:bg-white/[0.04] hover:text-slate-200",
-                              sidebarCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5 text-left"
+                              sidebarCollapsed ? "justify-center px-0 py-2.5" : "px-1.5 py-2 text-left"
                             ].join(" ")}
                             onClick={() => setActiveView(item.key)}
                             title={sidebarCollapsed ? item.label : undefined}
@@ -572,7 +572,7 @@ export function DashboardApp() {
                             <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center">
                               <SidebarIcon view={item.key} />
                             </span>
-                            {!sidebarCollapsed ? <span className="text-[13px] font-medium">{item.label}</span> : null}
+                            {!sidebarCollapsed ? <span className="text-[10px] font-medium tracking-[0.01em]">{item.label}</span> : null}
                           </button>
                         );
                       })}
