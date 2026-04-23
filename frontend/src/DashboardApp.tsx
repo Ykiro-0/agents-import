@@ -446,6 +446,63 @@ const OFFICE_LAYOUT: Array<{
   { deskX: 82, deskY: 70, agentX: 82, agentY: 80 }
 ];
 
+const OFFICE_AGENT_SHEET_URL = "/agentes/56a8cfd5-e37a-4a4b-b9b2-1d856e049a97.png";
+const OFFICE_AGENT_SHEET_SIZE = 230;
+const OFFICE_AGENT_POSES: Array<{ x: number; y: number; w: number; h: number }> = [
+  { x: 9, y: 52, w: 48, h: 124 },
+  { x: 63, y: 50, w: 50, h: 127 },
+  { x: 122, y: 52, w: 42, h: 124 },
+  { x: 175, y: 52, w: 46, h: 125 }
+];
+
+function getOfficePoseIndex(status: PixelAgentStatus, tick: number): number {
+  if (status === "running") return tick % 2 === 0 ? 1 : 2;
+  if (status === "completed") return 0;
+  if (status === "blocked") return 2;
+  return tick % 2 === 0 ? 0 : 3;
+}
+
+function OfficeAgentSprite({ status, seed }: { status: PixelAgentStatus; seed: number }) {
+  const [tick, setTick] = useState(seed % 2);
+  const intervalMs = status === "running" ? 340 : 760;
+  const pose = OFFICE_AGENT_POSES[getOfficePoseIndex(status, tick)];
+  const scale = 0.42;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setTick((current) => current + 1);
+    }, intervalMs);
+
+    return () => window.clearInterval(timer);
+  }, [intervalMs]);
+
+  return (
+    <div
+      className="relative overflow-hidden"
+      style={{
+        width: `${Math.round(pose.w * scale)}px`,
+        height: `${Math.round(pose.h * scale)}px`
+      }}
+    >
+      <img
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute select-none"
+        draggable={false}
+        src={OFFICE_AGENT_SHEET_URL}
+        style={{
+          width: `${OFFICE_AGENT_SHEET_SIZE * scale}px`,
+          height: `${OFFICE_AGENT_SHEET_SIZE * scale}px`,
+          left: `${-pose.x * scale}px`,
+          top: `${-pose.y * scale}px`,
+          imageRendering: "pixelated",
+          transform: status === "running" && tick % 2 === 0 ? "translateY(-1px)" : "translateY(0)"
+        }}
+      />
+    </div>
+  );
+}
+
 function PixelControlRoom({
   steps,
   agentName
@@ -583,7 +640,7 @@ function PixelControlRoom({
                 className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
                 style={{ left: `${slot.agentX}%`, top: `${slot.agentY}%` }}
               >
-                <PixelAgentSprite frameSeed={index + 9} pixelSize={3} status={step.status} framed={false} />
+                <OfficeAgentSprite seed={index} status={step.status} />
               </div>
 
               <div
