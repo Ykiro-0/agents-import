@@ -10,6 +10,19 @@ import { loadState, markTaskAsProcessed } from "./state-store.js";
 import type { AgCadIssue, ProcessingStatus } from "../types.js";
 import type { ClickUpAttachment, CsvItem, HtmlItem, ProcessedTaskResult, VfRow, XmlItem } from "../types.js";
 import { writeVfWorkbook } from "./vf-workbook.js";
+import { validateCsvItems } from "../validators/csv-validator.js";
+import { validateHtmlItems } from "../validators/html-validator.js";
+import { validateXmlItems } from "../validators/xml-validator.js";
+import { validateCrossSourceItems } from "../validators/cross-validator.js";
+import { validateVfRows } from "../validators/vf-row-validator.js";
+import {
+  createValidationIssue,
+  getBlockedItemIndexes,
+  hasBlockingIssues,
+  mergeValidationIssues,
+  type ValidationIssue
+} from "../validators/validation-result.js";
+import { writeValidationReport } from "./validation-report.js";
 
 type ProgressReporter = (status: ProcessingStatus) => void;
 
@@ -72,14 +85,22 @@ function buildTabelaA(origem: string): string {
   return "0";
 }
 
-function ensureAgCadCanProceed(issues: AgCadIssue[]): void {
-  const blockingIssues = issues.filter((issue) => issue.severity === "error");
-
-  if (blockingIssues.length === 0) {
-    return;
-  }
-
-  throw new Error(`AG-CAD bloqueou a geracao da planilha: ${formatAgCadIssues(blockingIssues)}`);
+function convertAgCadIssuesToValidationIssues(issues: AgCadIssue[]): ValidationIssue[] {
+  return issues.map((issue) =>
+    createValidationIssue({
+      sourceType: issue.source,
+      severity: issue.severity,
+      itemIndex: null,
+      rowNumber: null,
+      field: "ag_cad",
+      rule: "AG_CAD_ANALISE",
+      message: issue.message,
+      suggestedAction:
+        issue.severity === "error"
+          ? "Corrigir os arquivos de origem antes de seguir para a planilha VF."
+          : "Revisar manualmente este ponto antes da importacao."
+    })
+  );
 }
 
 function extractNfNumber(taskName: string, taskDescription: string, xmlItems: XmlItem[]): string {
@@ -169,10 +190,10 @@ function buildVfRows(csvItems: CsvItem[], htmlItems: HtmlItem[], xmlItems: XmlIt
       unidadeDeCompra: xmlItem?.unidade ?? "",
       unidadeDeVenda: xmlItem?.unidade ?? "",
       tabelaA: buildTabelaA(xmlItem?.origem ?? ""),
-      situacaoFiscalId: "1",
+      situacaoFiscalId: xmlItem?.situacaoFiscal ?? "",
       generoId: xmlItem?.ncm2 ?? "",
       nomeclaturaMercosulId: xmlItem?.ncm8 ?? "",
-      itensImpostosFederais: "01;02",
+      itensImpostosFederais: "01;20",
       naturezaDeImpostoFederalId: "",
       tipo: ean ? "EAN" : "LITERAL",
       id: ean,
@@ -269,13 +290,45 @@ async function processTaskWithProgress(
     (csvItem) => findXmlItem(csvItem, xmlItems),
     (csvItem) => findHtmlItem(csvItem, htmlItems)
   );
-  ensureAgCadCanProceed(agCadAnalysis.issues);
-
-  sendProgress("cruzando dados da NF");
   const nfNumber = extractNfNumber(selectedTask.name, selectedTask.description, xmlItems);
+
+  sendProgress("validando CSV, HTML, XML e cruzamentos");
   const rows = buildVfRows(csvItems, htmlItems, xmlItems);
+  const validationIssues = mergeValidationIssues(
+    validateCsvItems(csvItems),
+    validateHtmlItems(htmlItems),
+    validateXmlItems(xmlItems),
+    validateCrossSourceItems(csvItems, {
+      findXmlItem: (csvItem) => findXmlItem(csvItem, xmlItems),
+      findHtmlItem: (csvItem) => findHtmlItem(csvItem, htmlItems)
+    }),
+    validateVfRows(rows),
+    convertAgCadIssuesToValidationIssues(agCadAnalysis.issues)
+  );
+  const blockedItemIndexes = getBlockedItemIndexes(validationIssues);
+  const hasGlobalBlockingIssue = validationIssues.some(
+    (issue) => issue.severity === "error" && issue.itemIndex === null
+  );
+  const validRows = rows.filter((_, index) => !blockedItemIndexes.has(index));
 
   await fs.mkdir(config.outputDir, { recursive: true });
+  const validationReport = await writeValidationReport(
+    config.outputDir,
+    {
+      taskId: selectedTask.id,
+      taskName: selectedTask.name,
+      nfNumber,
+      totalItems: rows.length,
+      exportedItems: validRows.length,
+      blockedItems: blockedItemIndexes.size,
+      sourceFiles: {
+        csv: csvAttachment.title,
+        html: htmlAttachment.title,
+        xml: xmlAttachment.title
+      }
+    },
+    validationIssues
+  );
 
   const issuesSummary = formatAgCadIssues(agCadAnalysis.issues);
   await fs.writeFile(
@@ -286,7 +339,8 @@ async function processTaskWithProgress(
         taskName: selectedTask.name,
         nfNumber,
         issues: agCadAnalysis.issues,
-        summary: issuesSummary
+        summary: issuesSummary,
+        validationReport: validationReport.jsonPath
       },
       null,
       2
@@ -294,9 +348,19 @@ async function processTaskWithProgress(
     "utf8"
   );
 
+  if (hasGlobalBlockingIssue) {
+    throw new Error(
+      `Validacao bloqueou a execucao por erro estrutural. Relatorio: ${validationReport.jsonPath}`
+    );
+  }
+
+  if (hasBlockingIssues(validationIssues) && validRows.length === 0) {
+    throw new Error(`Todos os itens foram bloqueados na validacao. Relatorio: ${validationReport.jsonPath}`);
+  }
+
   sendProgress("gerando planilha VF");
   const outputPath = path.join(config.outputDir, `VF_EXCEL_NF_${nfNumber}.xlsx`);
-  writeVfWorkbook(rows, outputPath);
+  writeVfWorkbook(validRows, outputPath);
 
   sendProgress("finalizando processamento");
   await markTaskAsProcessed(selectedTask.id);
@@ -306,7 +370,13 @@ async function processTaskWithProgress(
     taskName: selectedTask.name,
     nfNumber,
     outputPath,
-    totalItems: rows.length
+    totalItems: rows.length,
+    exportedItems: validRows.length,
+    blockedItems: blockedItemIndexes.size,
+    validationErrorCount: validationReport.errorCount,
+    validationWarningCount: validationReport.warningCount,
+    validationReportJsonPath: validationReport.jsonPath,
+    validationReportCsvPath: validationReport.csvPath
   };
 }
 

@@ -26,6 +26,14 @@ export async function reprocessTask(taskId: string): Promise<MonitorSnapshot> {
   return parseJson<MonitorSnapshot>(response);
 }
 
+export async function runMonitorNow(): Promise<MonitorSnapshot> {
+  const response = await fetch("/api/run-now", {
+    method: "POST"
+  });
+
+  return parseJson<MonitorSnapshot>(response);
+}
+
 export async function deleteGeneratedFile(deleteUrl: string): Promise<MonitorSnapshot> {
   const response = await fetch(deleteUrl, {
     method: "DELETE"

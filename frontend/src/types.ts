@@ -35,6 +35,23 @@ export type StatusCount = {
   total: number;
 };
 
+export type AgentStepStatus = "pending" | "running" | "completed" | "blocked";
+
+export type AgentPipelineStep = {
+  id: string;
+  title: string;
+  description: string;
+  status: AgentStepStatus;
+  detail?: string;
+};
+
+export type AgentPipelineState = {
+  name: string;
+  mode: "kadia";
+  currentStage?: string;
+  steps: AgentPipelineStep[];
+};
+
 export type MonitorSnapshot = {
   serverTime: string;
   targetStatus: string;
@@ -60,4 +77,5 @@ export type MonitorSnapshot = {
   statusCounts: StatusCount[];
   targetTasks: DashboardTaskInfo[];
   recentRuns: ExecutionLogEntry[];
+  agent: AgentPipelineState;
 };

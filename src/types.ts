@@ -78,6 +78,12 @@ export interface ProcessedTaskResult {
   nfNumber: string;
   outputPath: string;
   totalItems: number;
+  exportedItems?: number;
+  blockedItems?: number;
+  validationErrorCount?: number;
+  validationWarningCount?: number;
+  validationReportJsonPath?: string;
+  validationReportCsvPath?: string;
 }
 
 export interface ProcessingStatus {
@@ -139,6 +145,23 @@ export interface StatusCount {
   total: number;
 }
 
+export type AgentStepStatus = "pending" | "running" | "completed" | "blocked";
+
+export interface AgentPipelineStep {
+  id: string;
+  title: string;
+  description: string;
+  status: AgentStepStatus;
+  detail?: string;
+}
+
+export interface AgentPipelineState {
+  name: string;
+  mode: "kadia";
+  currentStage?: string;
+  steps: AgentPipelineStep[];
+}
+
 export interface MonitorSnapshot {
   serverTime: string;
   targetStatus: string;
@@ -158,4 +181,5 @@ export interface MonitorSnapshot {
   statusCounts: StatusCount[];
   targetTasks: DashboardTaskInfo[];
   recentRuns: ExecutionLogEntry[];
+  agent: AgentPipelineState;
 }

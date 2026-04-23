@@ -21,7 +21,17 @@ async function main(): Promise<void> {
   console.log("Planilha gerada com sucesso.");
   console.log(`Task: ${result.taskName} (${result.taskId})`);
   console.log(`NF: ${result.nfNumber}`);
-  console.log(`Itens: ${result.totalItems}`);
+  console.log(`Itens totais: ${result.totalItems}`);
+  console.log(`Itens exportados: ${result.exportedItems ?? result.totalItems}`);
+  console.log(`Itens bloqueados: ${result.blockedItems ?? 0}`);
+  console.log(`Erros de validacao: ${result.validationErrorCount ?? 0}`);
+  console.log(`Alertas de validacao: ${result.validationWarningCount ?? 0}`);
+  if (result.validationReportCsvPath) {
+    console.log(`Relatorio CSV: ${result.validationReportCsvPath}`);
+  }
+  if (result.validationReportJsonPath) {
+    console.log(`Relatorio JSON: ${result.validationReportJsonPath}`);
+  }
   console.log(`Arquivo: ${result.outputPath}`);
 }
 
@@ -38,7 +48,11 @@ async function runWatcher(): Promise<void> {
         console.log("Nova task encontrada e processada com sucesso.");
         console.log(`Task: ${result.taskName} (${result.taskId})`);
         console.log(`NF: ${result.nfNumber}`);
-        console.log(`Itens: ${result.totalItems}`);
+        console.log(`Itens totais: ${result.totalItems}`);
+        console.log(`Itens exportados: ${result.exportedItems ?? result.totalItems}`);
+        console.log(`Itens bloqueados: ${result.blockedItems ?? 0}`);
+        console.log(`Erros de validacao: ${result.validationErrorCount ?? 0}`);
+        console.log(`Alertas de validacao: ${result.validationWarningCount ?? 0}`);
         console.log(`Arquivo: ${result.outputPath}`);
       } else {
         console.log("Nenhuma nova task para processar neste ciclo.");

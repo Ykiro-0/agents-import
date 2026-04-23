@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { deleteGeneratedFile, fetchDashboard, reprocessTask } from "./api";
-import type { DashboardTaskInfo, ExecutionLogEntry, MonitorSnapshot } from "./types";
+import { deleteGeneratedFile, fetchDashboard, reprocessTask, runMonitorNow } from "./api";
+import type { AgentPipelineStep, DashboardTaskInfo, ExecutionLogEntry, MonitorSnapshot } from "./types";
 
-type ViewKey = "project" | "list" | "approval" | "agCad" | "agPrice" | "logs" | "files" | "settings";
+type ViewKey = "project" | "agent" | "list" | "approval" | "agCad" | "agPrice" | "logs" | "files" | "settings";
 
 type ApprovalDraft = {
   descricao: string;
@@ -39,6 +39,20 @@ function SidebarIcon({ view }: { view: ViewKey }) {
         <path d="M4 6h.01" />
         <path d="M4 12h.01" />
         <path d="M4 18h.01" />
+      </svg>
+    );
+  }
+
+  if (view === "agent") {
+    return (
+      <svg {...commonProps}>
+        <path d="M12 3v6" />
+        <path d="M5.5 7.5 9 10" />
+        <path d="M18.5 7.5 15 10" />
+        <path d="M12 21v-6" />
+        <path d="M5.5 16.5 9 14" />
+        <path d="M18.5 16.5 15 14" />
+        <circle cx="12" cy="12" r="3.2" />
       </svg>
     );
   }
@@ -156,6 +170,29 @@ function getTaskStatusLabel(task: DashboardTaskInfo): string {
   if (task.hasGeneratedFile) return "Planilha gerada";
   if (task.readyToProcess) return "Pronta para processar";
   return "Aguardando anexos";
+}
+
+function getAgentStepClass(step: AgentPipelineStep): string {
+  if (step.status === "completed") {
+    return "border-emerald-400/20 bg-emerald-500/10 text-emerald-200";
+  }
+
+  if (step.status === "running") {
+    return "border-amber-400/20 bg-amber-500/10 text-amber-200";
+  }
+
+  if (step.status === "blocked") {
+    return "border-rose-400/20 bg-rose-500/10 text-rose-200";
+  }
+
+  return "border-white/10 bg-white/[0.03] text-slate-300";
+}
+
+function getAgentStepLabel(step: AgentPipelineStep): string {
+  if (step.status === "completed") return "Concluida";
+  if (step.status === "running") return "Em execucao";
+  if (step.status === "blocked") return "Bloqueada";
+  return "Pendente";
 }
 
 function IconButton({
@@ -398,6 +435,7 @@ export function DashboardApp() {
     {
       title: "AGENTES",
       items: [
+        { key: "agent", label: "Kadia Pipeline" },
         { key: "agCad", label: "AG-CAD" },
         { key: "agPrice", label: "AG-PRICE" }
       ]
@@ -414,6 +452,16 @@ export function DashboardApp() {
       items: [{ key: "settings", label: "Configuracoes" }]
     }
   ];
+
+  async function handleRunNow() {
+    try {
+      const data = await runMonitorNow();
+      setSnapshot(data);
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Erro ao rodar ciclo manual.");
+    }
+  }
 
   async function handleReprocess(taskId: string) {
     setReprocessing((prev) => new Set(prev).add(taskId));
@@ -582,15 +630,26 @@ export function DashboardApp() {
                       : "Aguardando snapshot do dashboard..."}
                   </div>
                 </div>
-                <button
-                  className="rounded-full bg-gradient-to-r from-blue-700 to-blue-500 px-5 py-3 text-sm text-blue-50 shadow-lg shadow-blue-900/30 transition hover:-translate-y-px"
-                  onClick={() => {
-                    void loadSnapshot();
-                  }}
-                  type="button"
-                >
-                  Atualizar agora
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 text-sm text-slate-100 transition hover:-translate-y-px hover:bg-white/[0.07]"
+                    onClick={() => {
+                      void loadSnapshot();
+                    }}
+                    type="button"
+                  >
+                    Atualizar
+                  </button>
+                  <button
+                    className="rounded-full bg-gradient-to-r from-blue-700 to-blue-500 px-5 py-3 text-sm text-blue-50 shadow-lg shadow-blue-900/30 transition hover:-translate-y-px"
+                    onClick={() => {
+                      void handleRunNow();
+                    }}
+                    type="button"
+                  >
+                    Rodar ciclo
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -639,6 +698,77 @@ export function DashboardApp() {
                         <div className="mt-2 text-3xl font-semibold">{item.total}</div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              </>
+            ) : null}
+
+            {activeView === "agent" ? (
+              <>
+                <div className="col-span-8 rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-glow backdrop-blur-xl max-lg:col-span-12">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Agente</div>
+                      <div className="mt-2 text-lg font-semibold">
+                        {snapshot?.agent.name ?? "Kadia"} ({snapshot?.agent.mode ?? "kadia"})
+                      </div>
+                    </div>
+                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-slate-300">
+                      Etapa atual: {snapshot?.agent.currentStage ?? "sem execucao ativa"}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 space-y-3">
+                    {(snapshot?.agent.steps ?? []).map((step, index) => (
+                      <div key={step.id} className={["rounded-2xl border p-4", getAgentStepClass(step)].join(" ")}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/15 text-xs font-semibold">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold">{step.title}</div>
+                              <div className="mt-1 text-sm opacity-90">{step.description}</div>
+                              {step.detail ? <div className="mt-2 text-xs opacity-80">Detalhe: {step.detail}</div> : null}
+                            </div>
+                          </div>
+                          <span className="rounded-full border border-white/15 bg-black/20 px-3 py-1 text-xs">
+                            {getAgentStepLabel(step)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="col-span-4 rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-glow backdrop-blur-xl max-lg:col-span-12">
+                  <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Resumo do Agente</div>
+                  <div className="mt-4 space-y-3">
+                    <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+                      <div className="text-xs uppercase tracking-[0.14em] text-emerald-200">Concluidas</div>
+                      <div className="mt-2 text-3xl font-semibold">
+                        {snapshot?.agent.steps.filter((step) => step.status === "completed").length ?? 0}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4">
+                      <div className="text-xs uppercase tracking-[0.14em] text-amber-200">Em execucao</div>
+                      <div className="mt-2 text-3xl font-semibold">
+                        {snapshot?.agent.steps.filter((step) => step.status === "running").length ?? 0}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4">
+                      <div className="text-xs uppercase tracking-[0.14em] text-rose-200">Bloqueadas</div>
+                      <div className="mt-2 text-3xl font-semibold">
+                        {snapshot?.agent.steps.filter((step) => step.status === "blocked").length ?? 0}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
+                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Proxima entrega</div>
+                    <div className="mt-2">
+                      Implementar `Agente 1`, `Validador 1`, `Agente 2` e `Validador 2` na pipeline real.
+                    </div>
                   </div>
                 </div>
               </>
