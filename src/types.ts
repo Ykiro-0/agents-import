@@ -72,6 +72,17 @@ export interface VfRow {
   identificadorDeOrigem: string;
 }
 
+export type ClassificationConfidenceLevel = "high" | "medium" | "low";
+
+export interface ProductClassification {
+  secaoId: string;
+  grupoId: string;
+  subgrupoId: string;
+  confidence: number;
+  confidenceLevel: ClassificationConfidenceLevel;
+  matchedPath: string;
+}
+
 export interface ProcessedTaskResult {
   taskId: string;
   taskName: string;

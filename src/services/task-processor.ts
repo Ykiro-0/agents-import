@@ -23,8 +23,15 @@ import {
   type ValidationIssue
 } from "../validators/validation-result.js";
 import { writeValidationReport } from "./validation-report.js";
+import { classifyKadiaCad } from "./kadia-cad-taxonomy.js";
+import type { ProductClassification } from "../types.js";
 
 type ProgressReporter = (status: ProcessingStatus) => void;
+type BuiltRowResult = {
+  row: VfRow;
+  classification: ProductClassification | null;
+  descricao: string;
+};
 
 function normalizeText(value: string): string {
   return value
@@ -169,41 +176,84 @@ function findHtmlItem(csvItem: CsvItem, htmlItems: HtmlItem[]): HtmlItem | undef
   });
 }
 
-function buildVfRows(csvItems: CsvItem[], htmlItems: HtmlItem[], xmlItems: XmlItem[]): VfRow[] {
+function buildKadiaCadClassificationIssues(results: BuiltRowResult[]): ValidationIssue[] {
+  return results.flatMap((result, index) => {
+    if (!result.classification) {
+      return [
+        createValidationIssue({
+          sourceType: "vf",
+          severity: "warning",
+          itemIndex: index,
+          rowNumber: index + 2,
+          field: "secaoId|grupoId|subgrupoId",
+          value: result.descricao,
+          rule: "KADIA_CAD_CLASSIFICATION_MISSING",
+          message: `Kadia Cad nao encontrou classificacao para "${result.descricao}".`,
+          suggestedAction: "Revisar manualmente secao, grupo e subgrupo antes da aprovacao."
+        })
+      ];
+    }
+
+    if (result.classification.confidenceLevel === "low") {
+      return [
+        createValidationIssue({
+          sourceType: "vf",
+          severity: "warning",
+          itemIndex: index,
+          rowNumber: index + 2,
+          field: "secaoId|grupoId|subgrupoId",
+          value: result.classification.matchedPath,
+          rule: "KADIA_CAD_LOW_CONFIDENCE",
+          message: `Kadia Cad classificou "${result.descricao}" com baixa confianca em ${result.classification.matchedPath}.`,
+          suggestedAction: "Validar se a classificacao sugerida realmente corresponde ao item."
+        })
+      ];
+    }
+
+    return [];
+  });
+}
+
+function buildVfRows(csvItems: CsvItem[], htmlItems: HtmlItem[], xmlItems: XmlItem[]): BuiltRowResult[] {
   return csvItems.map((csvItem) => {
     const xmlItem = findXmlItem(csvItem, xmlItems);
     const htmlItem = findHtmlItem(csvItem, htmlItems);
     const ean = csvItem.ean || xmlItem?.ean || htmlItem?.ean || "";
     const descricao = csvItem.descricao || xmlItem?.descricao || htmlItem?.descricao || "";
+    const classification = classifyKadiaCad(csvItem.descricao, htmlItem?.descricao, xmlItem?.descricao);
 
     return {
-      produtoCriado: "",
-      auxiliarCriado: "",
-      produtoId: "",
-      secaoId: "",
-      grupoId: "",
-      subgrupoId: "",
-      marcaId: "",
+      classification,
       descricao,
-      descricaoReduzida: buildReducedDescription(descricao),
-      pesoVariavel: "",
-      unidadeDeCompra: xmlItem?.unidade ?? "",
-      unidadeDeVenda: xmlItem?.unidade ?? "",
-      tabelaA: buildTabelaA(xmlItem?.origem ?? ""),
-      situacaoFiscalId: xmlItem?.situacaoFiscal ?? "",
-      generoId: xmlItem?.ncm2 ?? "",
-      nomeclaturaMercosulId: xmlItem?.ncm8 ?? "",
-      itensImpostosFederais: "01;20",
-      naturezaDeImpostoFederalId: "",
-      tipo: ean ? "EAN" : "LITERAL",
-      id: ean,
-      fator: 1,
-      eanTributado: ean ? "true" : "",
-      custoProduto: xmlItem?.custo ?? 0,
-      precoVenda1: "",
-      precoOferta1: "",
-      margemPreco1: "",
-      identificadorDeOrigem: xmlItem?.numeroNf ?? ""
+      row: {
+        produtoCriado: "",
+        auxiliarCriado: "",
+        produtoId: "",
+        secaoId: classification?.secaoId ?? "",
+        grupoId: classification?.grupoId ?? "",
+        subgrupoId: classification?.subgrupoId ?? "",
+        marcaId: "",
+        descricao,
+        descricaoReduzida: buildReducedDescription(descricao),
+        pesoVariavel: "",
+        unidadeDeCompra: xmlItem?.unidade ?? "",
+        unidadeDeVenda: xmlItem?.unidade ?? "",
+        tabelaA: buildTabelaA(xmlItem?.origem ?? ""),
+        situacaoFiscalId: xmlItem?.situacaoFiscal ?? "",
+        generoId: xmlItem?.ncm2 ?? "",
+        nomeclaturaMercosulId: xmlItem?.ncm8 ?? "",
+        itensImpostosFederais: "01;20",
+        naturezaDeImpostoFederalId: "",
+        tipo: ean ? "EAN" : "LITERAL",
+        id: ean,
+        fator: 1,
+        eanTributado: ean ? "true" : "",
+        custoProduto: xmlItem?.custo ?? 0,
+        precoVenda1: "",
+        precoOferta1: "",
+        margemPreco1: "",
+        identificadorDeOrigem: xmlItem?.numeroNf ?? ""
+      }
     };
   });
 }
@@ -293,7 +343,9 @@ async function processTaskWithProgress(
   const nfNumber = extractNfNumber(selectedTask.name, selectedTask.description, xmlItems);
 
   sendProgress("validando CSV, HTML, XML e cruzamentos");
-  const rows = buildVfRows(csvItems, htmlItems, xmlItems);
+  sendProgress("Kadia Cad classificando secao, grupo e subgrupo");
+  const builtRows = buildVfRows(csvItems, htmlItems, xmlItems);
+  const rows = builtRows.map((item) => item.row);
   const validationIssues = mergeValidationIssues(
     validateCsvItems(csvItems),
     validateHtmlItems(htmlItems),
@@ -303,7 +355,8 @@ async function processTaskWithProgress(
       findHtmlItem: (csvItem) => findHtmlItem(csvItem, htmlItems)
     }),
     validateVfRows(rows),
-    convertAgCadIssuesToValidationIssues(agCadAnalysis.issues)
+    convertAgCadIssuesToValidationIssues(agCadAnalysis.issues),
+    buildKadiaCadClassificationIssues(builtRows)
   );
   const blockedItemIndexes = getBlockedItemIndexes(validationIssues);
   const hasGlobalBlockingIssue = validationIssues.some(
