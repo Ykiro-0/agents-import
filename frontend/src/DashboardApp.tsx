@@ -79,9 +79,11 @@ function SidebarIcon({ view }: { view: ViewKey }) {
   if (view === "agCad") {
     return (
       <svg {...commonProps}>
-        <path d="M12 3l7 4v10l-7 4-7-4V7l7-4z" />
-        <path d="M9 12h6" />
-        <path d="M12 9v6" />
+        <path d="M8 3h6l4 4v14H8z" />
+        <path d="M14 3v4h4" />
+        <path d="M10.5 11h5" />
+        <path d="M10.5 15h5" />
+        <path d="M10.5 19h3.5" />
       </svg>
     );
   }
@@ -923,13 +925,13 @@ export function DashboardApp() {
       ]
     },
     {
-      title: "AGENTES",
-      items: [
-        { key: "agent", label: "Kadia Pipeline" },
-        { key: "agCad", label: "AG-CAD" },
-        { key: "agPrice", label: "AG-PRICE" }
-      ]
-    },
+        title: "AGENTES",
+        items: [
+          { key: "agent", label: "Kadia Pipeline" },
+          { key: "agCad", label: "Kadia Cad" },
+          { key: "agPrice", label: "AG-PRICE" }
+        ]
+      },
     {
       title: "REGISTROS",
       items: [
