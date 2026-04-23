@@ -1,4 +1,4 @@
-import { getTasksByStatus } from "../clients/clickup.js";
+import { getTask, getTasksByStatus } from "../clients/clickup.js";
 import { config } from "../config.js";
 import type { ClickUpTask, DashboardTaskInfo, MonitorSnapshot, StatusCount } from "../types.js";
 import { loadState } from "./state-store.js";
@@ -60,9 +60,21 @@ export async function getDashboardSnapshot(): Promise<MonitorSnapshot> {
     buildStatusCounts()
   ]);
 
-  const mappedTasks = targetTasks
-    .sort((left, right) => Number(right.date_updated ?? right.date_created ?? 0) - Number(left.date_updated ?? left.date_created ?? 0))
-    .map((task) => mapTask(task, state.processedTaskIds));
+  const sortedTasks = targetTasks.sort(
+    (left, right) => Number(right.date_updated ?? right.date_created ?? 0) - Number(left.date_updated ?? left.date_created ?? 0)
+  );
+
+  const hydratedTasks = await Promise.all(
+    sortedTasks.map(async (task) => {
+      try {
+        return await getTask(task.id);
+      } catch {
+        return task;
+      }
+    })
+  );
+
+  const mappedTasks = hydratedTasks.map((task) => mapTask(task, state.processedTaskIds));
 
   return {
     serverTime: new Date().toISOString(),
