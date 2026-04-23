@@ -980,56 +980,96 @@ export function DashboardApp() {
                     </div>
                   </div>
 
-                  <div className="mt-4 overflow-x-auto">
-                    <table className="w-full border-collapse text-xs">
-                      <thead>
-                        <tr className="text-left text-slate-400">
-                          <th className="border-b border-white/10 px-2 py-2.5 font-medium">NF</th>
-                          <th className="border-b border-white/10 px-2 py-2.5 font-medium">Fornecedor</th>
-                          <th className="border-b border-white/10 px-2 py-2.5 font-medium">Status</th>
-                          <th className="border-b border-white/10 px-2 py-2.5 font-medium">Data</th>
-                          <th className="border-b border-white/10 px-2 py-2.5 font-medium">Acoes</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(snapshot?.targetTasks ?? []).map((task) => {
-                          const meta = extractTaskMeta(task);
-                          const selected = selectedTask?.id === task.id;
+                    <div className="mt-4 overflow-x-auto">
+                      <table className="w-full border-collapse text-xs">
+                        <thead>
+                          <tr className="text-left text-slate-400">
+                            <th className="border-b border-white/10 px-2 py-2.5 font-medium">NF</th>
+                            <th className="border-b border-white/10 px-2 py-2.5 font-medium">Fornecedor</th>
+                            <th className="border-b border-white/10 px-2 py-2.5 font-medium">Status</th>
+                            <th className="border-b border-white/10 px-2 py-2.5 font-medium">Data</th>
+                            <th className="border-b border-white/10 px-2 py-2.5 font-medium">Acoes</th>
+                            <th className="border-b border-white/10 px-2 py-2.5 font-medium">ID ClickUp</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(snapshot?.targetTasks ?? []).map((task) => {
+                            const meta = extractTaskMeta(task);
+                            const isReprocessing = reprocessing.has(task.id);
+                            const canDownload = Boolean(task.hasGeneratedFile && task.latestDownloadUrl && !isReprocessing);
 
-                          return (
-                            <tr
-                              key={task.id}
-                              className={[
-                                "transition hover:bg-white/[0.03]",
-                                selected ? "bg-white/[0.04]" : ""
-                              ].join(" ")}
-                            >
-                              <td className="border-b border-white/10 px-2 py-3 align-middle">
-                                <div className="text-sm font-semibold text-slate-100">{meta.nf}</div>
-                                <div className="text-[11px] text-slate-500">{task.id}</div>
-                              </td>
-                              <td className="border-b border-white/10 px-2 py-3 align-middle">
-                                <div className="text-sm font-medium text-slate-200">{meta.fornecedor}</div>
-                                <div className="text-[11px] text-slate-500">{task.name}</div>
-                              </td>
-                              <td className="border-b border-white/10 px-2 py-3 align-middle">
-                                <span className={["inline-flex rounded-full border px-2.5 py-1 text-[11px]", getTaskBadgeClass(task)].join(" ")}>
-                                  {getTaskStatusLabel(task)}
-                                </span>
-                              </td>
-                              <td className="border-b border-white/10 px-2 py-3 align-middle text-[11px] text-slate-300">{fmt(task.dateUpdated)}</td>
-                              <td className="border-b border-white/10 px-2 py-3 align-middle">
-                                <button
-                                  className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-slate-100 transition hover:bg-white/[0.07]"
-                                  onClick={() => setSelectedTaskId(task.id)}
-                                  type="button"
-                                >
-                                  Selecionar
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
+                            return (
+                              <tr
+                                key={task.id}
+                                className="transition hover:bg-white/[0.03]"
+                              >
+                                <td className="border-b border-white/10 px-2 py-3 align-middle">
+                                  <div className="text-sm font-semibold text-slate-100">{meta.nf}</div>
+                                </td>
+                                <td className="border-b border-white/10 px-2 py-3 align-middle">
+                                  <div className="text-sm font-medium text-slate-200">{meta.fornecedor}</div>
+                                  <div className="text-[11px] text-slate-500">{task.name}</div>
+                                </td>
+                                <td className="border-b border-white/10 px-2 py-3 align-middle">
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {[
+                                      { label: "HTML", ok: task.hasHtml },
+                                      { label: "CSV", ok: task.hasCsv },
+                                      { label: "XML", ok: task.hasXml }
+                                    ].map((item) => (
+                                      <span
+                                        key={item.label}
+                                        className={[
+                                          "inline-flex rounded-full border px-2 py-1 text-[10px] font-medium",
+                                          item.ok
+                                            ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+                                            : "border-rose-400/20 bg-rose-500/10 text-rose-300"
+                                        ].join(" ")}
+                                      >
+                                        {item.label}: {item.ok ? "OK" : "FALTA"}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="border-b border-white/10 px-2 py-3 align-middle text-[11px] text-slate-300">{fmt(task.dateUpdated)}</td>
+                                <td className="border-b border-white/10 px-2 py-3 align-middle">
+                                  <div className="flex flex-wrap gap-2">
+                                    <button
+                                      className={[
+                                        "rounded-full border px-3 py-1.5 text-[11px] font-medium transition",
+                                        canDownload
+                                          ? "border-emerald-400/20 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20"
+                                          : "border-white/10 bg-white/[0.03] text-slate-500",
+                                        isReprocessing ? "cursor-not-allowed opacity-60" : ""
+                                      ].join(" ")}
+                                      disabled={!canDownload}
+                                      onClick={() => {
+                                        if (task.latestDownloadUrl && !isReprocessing) {
+                                          window.location.href = task.latestDownloadUrl;
+                                        }
+                                      }}
+                                      type="button"
+                                    >
+                                      Baixar
+                                    </button>
+                                    <button
+                                      className="rounded-full border border-blue-400/20 bg-blue-500/12 px-3 py-1.5 text-[11px] font-medium text-blue-100 transition hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-70"
+                                      disabled={isReprocessing}
+                                      onClick={() => {
+                                        void handleReprocess(task.id);
+                                      }}
+                                      type="button"
+                                    >
+                                      {isReprocessing ? "Reprocessando..." : "Reprocessar"}
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="border-b border-white/10 px-2 py-3 align-middle text-[11px] text-slate-500">
+                                  {task.id}
+                                </td>
+                              </tr>
+                            );
+                          })}
                       </tbody>
                     </table>
                   </div>
