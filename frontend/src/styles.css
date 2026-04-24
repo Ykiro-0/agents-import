@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=VT323&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,4 +14,49 @@ body {
 
 #root {
   @apply min-h-screen;
+}
+
+.pixel-hub {
+  --pixel-font: "Pixelify Sans", system-ui, sans-serif;
+  --pixel-mono: "VT323", ui-monospace, SFMono-Regular, monospace;
+}
+
+.pixel-hub .pixel-title {
+  font-family: var(--pixel-font);
+  letter-spacing: 0.02em;
+}
+
+.pixel-hub .font-mono-pixel {
+  font-family: var(--pixel-mono);
+}
+
+.pixel-hub .pixel-bob {
+  animation: pixel-bob 1.6s steps(2) infinite;
+}
+
+.pixel-hub .cursor-blink {
+  animation: pixel-blink 1s steps(2) infinite;
+}
+
+@keyframes pixel-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes pixel-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
 }

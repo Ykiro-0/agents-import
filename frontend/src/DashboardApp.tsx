@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { deleteGeneratedFile, fetchDashboard, reprocessTask, runMonitorNow } from "./api";
 import type { AgentPipelineStep, DashboardTaskInfo, ExecutionLogEntry, MonitorSnapshot } from "./types";
+import { PixelAgentHub } from "./components/PixelAgentHub";
 
 type ViewKey = "project" | "agent" | "list" | "approval" | "agCad" | "agPrice" | "logs" | "files" | "settings";
 
@@ -1248,35 +1249,11 @@ export function DashboardApp() {
                     </span>
                   </div>
 
-                  <PixelControlRoom
+                  <PixelAgentHub
                     agentName={snapshot?.agent.name ?? "Kadia"}
+                    currentStage={snapshot?.agent.currentStage}
                     steps={snapshot?.agent.steps ?? []}
                   />
-
-                  <div className="mt-5 space-y-3">
-                    {(snapshot?.agent.steps ?? []).map((step, index) => (
-                      <div key={step.id} className={["rounded-2xl border p-4", getAgentStepClass(step)].join(" ")}>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-4">
-                            <PixelAgentSprite frameSeed={index} status={step.status} />
-                            <div className="flex items-start gap-3">
-                              <div className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/15 text-xs font-semibold">
-                                {index + 1}
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold">{step.title}</div>
-                                <div className="mt-1 text-sm opacity-90">{step.description}</div>
-                                {step.detail ? <div className="mt-2 text-xs opacity-80">Detalhe: {step.detail}</div> : null}
-                              </div>
-                            </div>
-                          </div>
-                          <span className="rounded-full border border-white/15 bg-black/20 px-3 py-1 text-xs">
-                            {getAgentStepLabel(step)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
 
                 <div className="col-span-4 rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-glow backdrop-blur-xl max-lg:col-span-12">
