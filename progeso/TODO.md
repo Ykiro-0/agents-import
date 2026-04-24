@@ -49,8 +49,8 @@ kadia/enriquecimento
 | [x] | Gerador de planilha VF criado |  | `src/services/vf-workbook.ts` |
 | [x] | Processador de task ClickUp criado |  | `src/services/task-processor.ts` |
 | [x] | Dashboard/monitor criado |  | `src/server/*`, `src/services/dashboard-service.ts` |
-| [ ] | Rodar build e corrigir erros se houver |  | `npm run build` |
-| [ ] | Testar fluxo com anexos reais ou mockados |  | `data/`, `outputs/` |
+| [x] | Rodar build e corrigir erros se houver | Kadia | `npm run build` |
+| [x] | Testar fluxo com anexos reais ou mockados | Kadia | `outputs/` |
 
 ## 2. Validadores - Prioridade Alta
 
@@ -156,6 +156,18 @@ Nao implementar antes dos validadores.
 | [ ] | Definir endpoint final e contrato oficial da API externa | Usuario + Kadia | `docs/api.md`, `.env` |
 | [ ] | Criar campo de confianca da IA |  | `src/types.ts` |
 | [ ] | Marcar baixa confianca como pendente revisao |  | `src/validators/vf-row-validator.ts` |
+
+## 6.1 Dashboard Manual - Kadia Pipeline / Sala dos Agentes
+
+| Status | Tarefa | Dono | Arquivos principais |
+|---|---|---|---|
+| [x] | Upload manual de planilha no Kadia Pipeline | Kadia | `src/server/dashboard-server.ts`, `src/services/manual-spreadsheets.ts`, `frontend/src/DashboardApp.tsx` |
+| [x] | Listar planilhas manuais com download no dashboard | Kadia | `src/services/dashboard-service.ts`, `src/types.ts`, `frontend/src/types.ts` |
+| [x] | Botao `Remover NF` para planilha manual | Kadia | `src/server/dashboard-server.ts`, `src/services/manual-spreadsheets.ts`, `frontend/src/api.ts`, `frontend/src/DashboardApp.tsx` |
+| [x] | Botao `Iniciar` para processar planilha manual | Kadia | `src/server/dashboard-server.ts`, `src/services/manual-spreadsheet-runner.ts`, `frontend/src/api.ts`, `frontend/src/DashboardApp.tsx` |
+| [x] | Gerar saida enriquecida com aba `enriquecimento` usando base `PRECO` | Kadia | `src/services/manual-spreadsheet-runner.ts`, `src/services/kadia-enrichment.ts`, `src/tools/enrich-price-workbook.ts` |
+| [x] | Notificacao de planilha pronta com botao de download | Kadia | `frontend/src/DashboardApp.tsx` |
+| [x] | Animacao visual (bloco verde + agente trabalhando + confete) na Sala dos Agentes | Kadia | `frontend/src/components/ManualPipelineScene.tsx`, `frontend/src/styles.css`, `frontend/src/DashboardApp.tsx` |
 
 Permitido para IA:
 
