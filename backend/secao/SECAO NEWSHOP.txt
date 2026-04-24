@@ -1,0 +1,968 @@
+﻿Listagem De Seção e Grupo
+NEWSHOP COMERCIO LTDA ( LOJA )
+
+Filtros: Ordem: [Codigo]; Formato: [Grupo]; Seções: [TODOS];
+
+Seção: 1 - USO E CONSUMO
+
+Sem Grupo
+
+Seção: 2 - AUTOCUIDADO
+
+Grupo: 1 - FRASCOS DE VIAGEM
+
+Grupo: 2 - FRASCOS
+
+Grupo: 3 - PINÇAS/NAVALHAS
+
+Grupo: 4 - PINCÉIS DE MAQUIAGEM/ ESPONJA
+
+Grupo: 5 - NECESSAIRE
+
+Grupo: 7 - ESCOVA CABELO/PENTE/ESCOVA BLS
+
+Seção: 3 - GARRAFA/COPOS
+
+Grupo: 1 - COPOS/CANECAS TÉRMICAS
+
+Grupo: 2 - GARRAFAS TÉRMICAS
+
+Grupo: 3 - FACIL
+
+Grupo: 4 - ACESSÓRIOS E PEÇAS
+
+Grupo: 5 - GARRAFA INFANTIL
+
+Grupo: 6 - GARRAFAS (NÃO TÉRMICAS)
+
+Seção: 4 - MAQUIAGEM
+
+Grupo: 1 - PÓ COMPACTO
+
+Grupo: 2 - BLUSH
+
+Grupo: 3 - BATOM
+
+Grupo: 4 - RIMEL
+
+Grupo: 5 - PRIME
+
+Grupo: 6 - PÓ BANANA
+
+Grupo: 7 - PALETA DE CORES
+
+Grupo: 8 - BLINDAGEM
+
+Grupo: 9 - BRUMA
+
+Grupo: 10 - FIXADOR
+
+Grupo: 11 - BASE
+
+Grupo: 12 - CONTORNO
+
+Grupo: 13 - AGUA MICELAR
+
+Grupo: 14 - ESPUMA
+
+Grupo: 15 - SOMBRA
+
+Grupo: 16 - ILUMINADOR
+
+Grupo: 18 - CILIOS
+
+Grupo: 20 - MASCARA PARA CILIOS
+
+Grupo: 21 - LAPIS DE OLHO
+
+Grupo: 22 - LIMPEZA DE PINCEIS
+
+Grupo: 24 - CORRETIVO
+
+Grupo: 25 - DELINEADOR
+
+Grupo: 26 - SABONETE DE LIMPEZA
+
+Grupo: 27 - SOBRANCELHAS
+
+Grupo: 28 - GLOSS
+
+Seção: 5 - BIJUTERIA
+
+Grupo: 1 - PÓRTA JOIA
+
+Grupo: 2 - CHAVEIRO
+
+Grupo: 3 - MISSANGA
+
+
+Grupo: 4 - CINTO
+
+Grupo: 5 - COLAR / KIT E CONJUNTO
+
+Grupo: 6 - ANEL
+
+Grupo: 7 - BRINCO
+
+Grupo: 8 - PULSEIRA
+
+Grupo: 9 - ARTIGOS PARA CABELOS
+
+Grupo: 10 - RELOGIO
+
+Grupo: 11 - TIARA
+
+Grupo: 12 - OCULOS INFANTIL
+
+Grupo: 13 - TOUCA PRA BANHO
+
+Grupo: 14 - ORGANIZADOR
+
+Grupo: 15 - LEQUE
+
+Grupo: 16 - PIERCING
+
+Grupo: 17 - MASCARA DE DORMIR
+
+Grupo: 18 - TORNOZELEIRA
+
+Grupo: 20 - LENCO
+
+Seção: 6 - PET
+
+Grupo: 1 - BOLSA P/ TRANSPORTE D/ANIMAIS
+
+Grupo: 2 - MANTAS/COBERTORES/CAMAS
+
+Grupo: 3 - TIGELAS
+
+Grupo: 4 - BEBEDOUROS
+
+Grupo: 5 - ESCOVAS E PENTES
+
+Grupo: 6 - CORTADORES DE UNHA E LIXAS
+
+Grupo: 7 - BOLAS E FRISBEES
+
+Grupo: 8 - BRINQUEDOS DE BORRACHA
+
+Grupo: 9 - BRINQUEDOS PARA ROER/MASTIGA
+
+Grupo: 10 - ARRANHADORES
+
+Grupo: 11 - TUNEL
+
+Grupo: 12 - COLEIRAS,GUIAS E PEITORAIS
+
+Grupo: 13 - ROUPAS E BANDANAS
+
+Grupo: 14 - TAPETES HIGIÊNICOS/LAVÁVEIS
+
+Grupo: 15 - CAIXA DE AREIA
+
+Grupo: 16 - COMEDOUROS AUTOMÁTICOS/DOSADOR
+
+Grupo: 17 - LIMPADORES DE PATAS
+
+Grupo: 18 - ANTI PULGAS/CARRAPATOS
+
+Seção: 7 - ELETRONICO
+
+Grupo: 1 - MOTO ELÉTRICA
+
+Grupo: 2 - ELETRODOMESTICO
+
+Grupo: 3 - MARMITA ELETRICA
+
+Grupo: 4 - PATINETE ELETRICO
+
+Grupo: 5 - MINI KART
+
+Grupo: 6 - CARREGADORES
+
+Grupo: 7 - FONE DE OUVIDO FIO & BLUETOOTH
+
+Grupo: 8 - SUPORTES
+
+Grupo: 9 - CAIXAS DE SOM BLUETOOTH
+
+Grupo: 10 - RÁDIOS PORTÁTEIS
+
+Grupo: 11 - TECLADOS
+
+Grupo: 12 - MOUSE
+
+Grupo: 13 - MOUSEPADS
+
+
+
+
+Grupo: 14 - PEN DRIVES/ CARTÕES DE MEMÓRIA
+
+Grupo: 15 - PILHAS E BATERIAS
+
+Grupo: 16 - MÁQUINAS DE CORTAR CABELO/BARB
+
+Grupo: 17 - MASSAGEADORES PORTÁTEIS
+
+Grupo: 18 - MINI VENTILADORES/UMIDIFICADOR
+
+Grupo: 19 - BALANÇAS DIGITAIS
+
+Grupo: 20 - LUMINÁRIAS
+
+Grupo: 21 - MINI ASPIRADORES DE PÓ
+
+Grupo: 22 - FECHADURAS ELETRÔNICAS
+
+Grupo: 23 - CÂMERAS DE SEGURANÇA
+
+Grupo: 24 - BASTÕES DE SELFIE
+
+Grupo: 25 - JOGOS ELETRÔNICOS
+
+Grupo: 26 - IMPRESSORAS TÉRMICAS
+
+Grupo: 27 - MICROFONE
+
+Grupo: 28 - MULTIMIDIA/SOM  AUTOMOTIVO
+
+Grupo: 29 - ESTENSÃO / ''T
+
+Grupo: 30 - CAMPAINHA COM/SEM FIO
+
+Grupo: 31 - CABOS HDMI/VGA...
+
+Grupo: 32 - MONITOR
+
+Grupo: 33 - MASSAGEADORES ELETRICOS
+
+Grupo: 34 - FITA LED/ LED'S
+
+Grupo: 35 - RELOGIO ANALOGICO/DIGI
+
+Seção: 8 - COPA BRASILEIRA
+
+Grupo: 1 - CORNETAS
+
+Grupo: 2 - BANDEIRAS
+
+Grupo: 3 - CHAPEUS
+
+Grupo: 4 - OCULOS
+
+Grupo: 5 - PULSEIRA
+
+Grupo: 6 - BATE PALMAS
+
+Seção: 9 - PAPELARIA
+
+Grupo: 1 - CANETA
+
+Grupo: 2 - BORRACHA
+
+Grupo: 3 - DESENHO DIAMANTADO 2
+
+Grupo: 4 - ADESIVO
+
+Grupo: 5 - CARIMBO
+
+Grupo: 7 - TESOURA
+
+Grupo: 8 - PASTA
+
+Grupo: 9 - CADERNO
+
+Grupo: 10 - ESTOJO
+
+Grupo: 11 - APONTADOR
+
+Grupo: 12 - CRACHA
+
+Grupo: 13 - PASTA
+
+Grupo: 14 - LAPIS
+
+Grupo: 15 - MASSINHA
+
+Grupo: 16 - MARCA TEXTO
+
+Grupo: 17 - CORRETIVO
+
+Grupo: 19 - CALCULADORA
+
+Grupo: 20 - DESENHO DE COLORIR
+
+Grupo: 21 - REGUA
+
+
+Grupo: 23 - GRAMPEADOR
+
+Grupo: 24 - CACA-PALAVRAS
+
+Grupo: 25 - QUEBRA-CABEÇAS
+
+Grupo: 26 - COLA
+
+Grupo: 27 - CAIXA, SACOLA PARA PRESENTE
+
+Grupo: 28 - ESTILETE
+
+Grupo: 29 - LIVRO
+
+Grupo: 30 - KIT DE PINTURA E ESCOLAR
+
+Grupo: 31 - GIZ DE CERA
+
+Grupo: 32 - LAPIS DE COR
+
+Grupo: 33 - CANETINHA DE COLORIR
+
+Grupo: 34 - PRENDEDOR PARA PAPEIS
+
+Grupo: 35 - LAPISEIRA
+
+Grupo: 36 - CLIPE
+
+Grupo: 37 - PINCEIS
+
+Grupo: 38 - PILOTO
+
+Grupo: 39 - PERFURADOR DE FOLHAS
+
+Grupo: 40 - AQUARELA/TINTAS
+
+Grupo: 41 - BLOCO DE NOTAS
+
+Grupo: 42 - ALFINETES
+
+Grupo: 43 - COMPASSO
+
+Grupo: 44 - GRAFITE
+
+Grupo: 45 - QUADROS
+
+Seção: 11 - BANHEIRO
+
+Grupo: 1 - CORTINAS/TAPETES ANTIDERRAPANT
+
+Grupo: 2 - CESTOS/CAIXAS/BANDEJAS
+
+Grupo: 3 - ORGANIZADOR DE GAVETA/BANCADA
+
+Grupo: 4 - PRATELEIRAS/NICHOS DE PAREDE
+
+Grupo: 5 - PORTA - TOALHAS/GANCHOS
+
+Grupo: 6 - SABONETEIRA LÍQUIDA/BARRAS
+
+Grupo: 7 - PORTA-ESCOVAS
+
+Grupo: 8 - PORTA-ALGODÃO/COTONETE
+
+Grupo: 9 - LIXEIRAS COM/SEM PEDAL
+
+Grupo: 10 - SUPORTES/DISPENSERS S/C
+
+Grupo: 11 - ESCOVAS SANITÁRIAS/SUPORTES
+
+Grupo: 12 - ESPONJAS/ESCOVAS DE BANHO
+
+Grupo: 13 - SUPORTE/PORTA-PAPEL HIGIÊNICO
+
+Seção: 13 - ROUPAS
+
+Grupo: 1 - CALCINHA
+
+Grupo: 2 - BIQUINI
+
+Grupo: 3 - SUNGA MASCULINA
+
+Grupo: 4 - MEIAS
+
+Grupo: 5 - BIQUINE INFANTIL FEMININO
+
+Grupo: 6 - CAPA DE CHUVA ADULTA
+
+Grupo: 7 - CAPA DE CHUVA INFANTIL
+
+Grupo: 8 - CAPA MOTOBOY
+
+Grupo: 9 -  FANTASIA INFANTIL
+
+Grupo: 10 - FANTASIA DE CARNAVAL
+
+Grupo: 11 - COLCHA DE CAMA
+
+Grupo: 12 - CAPAS EM POLIESTER
+
+Seção: 15 - SEM PRODUTOS
+
+Grupo: 1 - NF.1197
+
+Seção: 16 - CARNAVAL
+
+Sem Grupo
+
+Seção: 17 - ESPORTES/LAZER
+
+Grupo: 1 - BICICLETA ERGOMETRICA
+
+Grupo: 2 - AR LIVRE
+
+Grupo: 3 - FOGAREIROS PORTÁTEIS
+
+Grupo: 4 - FACA
+
+Grupo: 5 - CAIXAS TÉRMICAS/COOLERS
+
+Grupo: 6 - CANTIS
+
+Grupo: 7 - ACESSORIOS ESPORTIVOS
+
+Grupo: 8 - INFLAVEIS
+
+Grupo: 9 - EQUIPAMENTO ESPORTIVO
+
+Grupo: 10 - GUARDA-CHUVA
+
+Seção: 18 - COZINHA
+
+Grupo: 1 - TALHERES
+
+Grupo: 2 - CONJUTOS: PRATO, COPO E COLHER
+
+Grupo: 3 - ORGANIZADORES DE TALHERES
+
+Grupo: 4 - ORGANIZADORES DE PRATOS
+
+Grupo: 5 - CONJUNTO DE RECIPIENTES
+
+Grupo: 6 - ORGANIZADOR DE GELADEIRA
+
+Grupo: 7 - CONJUNTO DE POTES
+
+Grupo: 8 - ORGANIZADORES ACRILICO/AÇOINOX
+
+Grupo: 9 - SECADORAS/ESCORREDORES
+
+Grupo: 10 - UTILIDADE DE COZINHA
+
+Grupo: 11 - ESTANTE DE METAL/PLASTICO
+
+Grupo: 12 - JOGO AMERICANO
+
+Grupo: 13 - PANELAS/CONJUNTOS
+
+Grupo: 14 - CERAMICA
+
+Seção: 20 - CHAPEU
+
+Sem Grupo
+
+Seção: 21 - VIDRO
+
+Grupo: 1 - FACIL
+
+Grupo: 2 - COPOS/ TAÇAS/ XICARA
+
+Grupo: 5 - DECORAÇÃO EM VIDRO
+
+Seção: 22 - CALÇADOS
+
+Grupo: 1 - CROCS
+
+Grupo: 2 - SANDALIA
+
+Seção: 23 - AVARIA
+
+Sem Grupo
+
+Seção: 24 - NATAL
+
+Grupo: 1 - FACIL
+
+Seção: 27 - FERRAMENTAS
+
+Grupo: 1 - MÁQUINAS ELÉTRICAS E A BATERIA
+
+Grupo: 2 - FERRAMENTAS MANUAIS
+
+Grupo: 3 - FIXAÇÃO E UNIÃO
+
+Grupo: 4 - MEDIÇÃO E NIVELAMENTO
+
+
+
+
+
+Grupo: 5 - ABRASIVOS E CORTE
+
+Grupo: 6 - PINTURA E TRATAMENTO
+
+Grupo: 7 - ORGANIZAÇÃO E SEGURANÇA
+
+Grupo: 8 - HIDRÁULICA E PNEUMÁTICA
+
+Seção: 40 - BRINQUEDO
+
+Grupo: 1 - BONECOS E FIGURAS DE AÇÃO
+
+Grupo: 2 - BEBÊS E PRIMEIRA INFÂNCIA 0A3
+
+Grupo: 3 - CARRINHOS, PISTAS E VEÍCULOS
+
+Grupo: 4 - JOGOS DE TABULEIRO E CARTAS
+
+Grupo: 5 - CONSTRUÇÃO E MONTAGEM
+
+Grupo: 6 - BRINQUEDOS EDUCATIVOS
+
+Grupo: 7 - AR LIVRE E ESPORTES
+
+Grupo: 8 - FAZ DE CONTA E PROFISSÕES
+
+Grupo: 9 - ARTES E CRIATIVIDADE
+
+Seção: 48 - BOLSAS/CARTEIRAS/NECESSARIES
+
+Grupo: 1 - BOLSA DE PRAIA
+
+Grupo: 2 - BOLSA MASCULINA PEQUENA
+
+Grupo: 3 - BOLSA ESCOLARES
+
+Grupo: 4 - MOCHILA
+
+Grupo: 5 - BOLSA DE ACADEMIA
+
+Grupo: 6 - BOLSA PRA CHINELO
+
+Grupo: 7 - BOLSA INFANTIL
+
+Grupo: 8 - BOLSA TERMICA
+
+Grupo: 9 - ESTOJO
+
+Grupo: 10 - PORTA MOEDA
+
+Grupo: 11 - POCHETE
+
+Grupo: 12 - MALA
+
+Grupo: 13 - NECESSAIRE
+
+Grupo: 14 - CARTEIRA FEMININA/MASCULINA
+
+Grupo: 15 - BOLSA MASCULINA
+
+Grupo: 16 - BOLSA DE FESTA
+
+Grupo: 17 - BOLSA DE VIAGEM
+
+Grupo: 18 - SUPORTE DE MOCHILA
+
+Grupo: 19 - BOLSA FEMININA
+
+Seção: 53 - ARTIGOS PARA UNHAS
+
+Grupo: 1 - CORTADOR DE UNHAS
+
+Grupo: 2 - UNHAS POSTICAS
+
+Grupo: 3 - DECORAÇÃO PARA  UNHAS
+
+Grupo: 4 - ALICATE DE UNHA
+
+Grupo: 5 - LIXA ELETRICA
+
+Grupo: 6 - PINCEIS
+
+Grupo: 7 - LIXAS
+
+Seção: 55 - ESPELHO
+
+Grupo: 1 - ESPELHO CORPO INTEIRO
+
+Grupo: 2 - ESPELHO PARA BANHEIRO
+
+Grupo: 3 - ESPELHO DE PAREDE
+
+Grupo: 4 - ESPELHO DE MAQUIAGEM / MESA
+
+Grupo: 5 - ESPELHO DE MÃO E COMPACTO
+
+Grupo: 6 - ESPELHOS AUTOMOTIVOS
+
+
+
+
+
+Grupo: 7 - ESPELHOS ESPECIAIS/SEGURANÇA
+
+Seção: 61 - UTILIDADE
+
+Grupo: 1 - DECORAÇÃO SIMPLES
+
+Grupo: 2 - LIMPEZA GERAL
+
+Grupo: 3 - TORNEIRA
+
+Grupo: 4 - QUADRO
+
+Grupo: 5 - ORGANIZADORES E ARMAZENAMENTO
+
+Grupo: 6 - LAVANDERIA E PASSAR ROUPAS
+
+Grupo: 7 - ESCRITORIO
+
+Grupo: 8 - PLACAS/RIPADOS
+
+Seção: 97 - PENDENTES A ENTREGA
+
+Grupo: 1 - NF27767
+
+Grupo: 2 - NF5861
+
+Grupo: 3 - NF5772
+
+Grupo: 4 - 38824
+
+Grupo: 5 - 32976
+
+Grupo: 6 - 6107
+
+Grupo: 7 - 54122
+
+Grupo: 8 - 1217
+
+Grupo: 9 - 31063
+
+Grupo: 10 - NF6526
+
+Grupo: 11 - 6526
+
+Grupo: 12 - 2423
+
+Grupo: 13 - NF28170
+
+Grupo: 14 - 238
+
+Grupo: 15 - NF773
+
+Grupo: 16 - NF32064
+
+Grupo: 17 - NF28300
+
+Grupo: 18 - NF170650
+
+Grupo: 19 - NF23689
+
+Grupo: 20 - NF33124
+
+Grupo: 21 - NF52657
+
+Seção: 98 - BRINDE
+
+Sem Grupo
+
+Seção: 99 - PRODUTO JA CADASTRADO
+
+Grupo: 1 - NF1273
+
+Grupo: 2 - NF11964
+
+Grupo: 3 - NF80
+
+Grupo: 4 - NF1579
+
+Grupo: 5 - NF99308
+
+Grupo: 6 - NF20789
+
+Grupo: 7 - NF9753
+
+Grupo: 8 - NF29409
+
+Grupo: 9 - NF37
+
+Grupo: 10 - NF153
+
+Grupo: 11 - NF4668
+
+Grupo: 12 - NF 1370
+
+Grupo: 13 - NF4431
+
+Grupo: 14 - NF1546
+
+Grupo: 15 - NF11904
+
+Grupo: 16 - NF3275
+
+Grupo: 17 - NF292
+
+Grupo: 18 - NF28153
+
+Grupo: 19 - NF23
+
+Grupo: 20 - NF6835
+
+Grupo: 21 - NF9842
+
+Grupo: 22 - NF28H
+
+Grupo: 23 - NF1372
+
+Grupo: 24 - NF391
+
+Grupo: 25 - NF35894
+
+Grupo: 26 - NF4423
+
+Grupo: 27 - NF160788
+
+Grupo: 28 - NF12934
+
+Grupo: 29 - NF5283
+
+Grupo: 30 - NF11921
+
+Grupo: 31 - NF12818
+
+Grupo: 32 - NF5711
+
+Grupo: 33 - NF377
+
+Grupo: 34 - NF3272
+
+Grupo: 35 - NF3292
+
+Grupo: 36 - NFE1313
+
+Grupo: 37 - NF5707
+
+Grupo: 38 - NF3333
+
+Grupo: 39 - 3372
+
+Grupo: 40 - 3314
+
+Grupo: 41 - NF1621
+
+Grupo: 42 - NF388
+
+Grupo: 43 - NF22192
+
+Grupo: 44 - NF393
+
+Grupo: 45 - NF873290
+
+Grupo: 46 - NF395
+
+Grupo: 47 - NF87913
+
+Grupo: 48 - NF13787
+
+Grupo: 49 - NF52394
+
+Grupo: 50 - NF52571
+
+Grupo: 51 - NF3377
+
+Grupo: 52 - NF869
+
+Grupo: 53 - NF22105
+
+Grupo: 54 - NF33357
+
+Grupo: 55 - NF1062
+
+Grupo: 56 - NF940
+
+Grupo: 57 - NF110
+
+Grupo: 58 - NF475
+
+Grupo: 59 - NF26
+
+Grupo: 60 - NF4
+
+Grupo: 61 - NF396
+
+Grupo: 62 - NF23271
+
+Grupo: 63 - N.118
+
+
+Grupo: 64 - NF.04.590
+
+Grupo: 65 - N.024
+
+Grupo: 66 - NF446
+
+Grupo: 67 - NF.010.600
+
+Grupo: 68 - NF.026
+
+Grupo: 69 - NF.14071
+
+Grupo: 70 - NF.1048
+
+Grupo: 71 - NF45885
+
+Grupo: 72 - NFE1735
+
+Grupo: 73 - NF.011.954
+
+Grupo: 74 - NF11090
+
+Grupo: 75 - NF.01.714
+
+Grupo: 76 - NF18720
+
+Grupo: 77 - NF870
+
+Grupo: 78 - NF023.143
+
+Grupo: 79 - NF142.466
+
+Grupo: 80 - NF267927
+
+Grupo: 81 - NF1717
+
+
+Grupo: 82 - NF9583
+
+Grupo: 83 - NF45804
+
+Grupo: 84 - NF10.872
+
+Grupo: 85 - NF344
+
+Grupo: 86 - NF1540
+
+Grupo: 87 - NF555
+
+Grupo: 88 - NF1396
+
+Grupo: 89 - NF38289
+
+Grupo: 90 - NF2446
+
+Grupo: 91 - NF518
+
+Grupo: 92 - NF884
+
+Grupo: 93 - NF57372
+
+Grupo: 94 - 69019
+
+Grupo: 95 - 3097
+
+Grupo: 96 - NFE6474
+
+Grupo: 97 - NFE4984
+
+Grupo: 98 - NFE2013
+
+Grupo: 99 - NFE11326
+
+Grupo: 100 - NF1019
+
+Grupo: 101 - 1085
+
+Grupo: 102 - 1102
+
+Grupo: 105 - 1484
+
+Grupo: 106 - NF995781
+
+Grupo: 107 - 634
+
+Grupo: 113 - NF3
+
+Grupo: 118 - NF45
+
+Grupo: 122 - NF165093
+
+Grupo: 125 - NF 4614
+
+Grupo: 130 - NF16211
+
+Grupo: 132 - NF11694
+
+Grupo: 133 - NF11693
+
+
+Grupo: 135 - NF8197
+
+Grupo: 136 - NF36271
+
+Grupo: 137 - NF1951
+
+Grupo: 138 - NF8165
+
+Grupo: 141 - NF279
+
+Grupo: 144 - NFE10702
+
+Grupo: 146 - NFE1872
+
+Grupo: 147 - NFE23614
+
+Grupo: 148 - NFE5916
+
+Grupo: 150 - NF87658
+
+Grupo: 155 - NF943
+
+Grupo: 156 - NF271
+
+Grupo: 157 - 280
+
+Grupo: 158 - NF379
+
+Grupo: 159 - NF254
+
+Grupo: 160 - NF16607
+
+Grupo: 161 - NF1562
+
+Grupo: 162 - NF18
+
+Grupo: 163 - NF2555
+
+Grupo: 164 - NF6578
+
+Grupo: 165 - NF6590
+
+Grupo: 166 - NF206931
+
+Grupo: 167 - NF207025
+
+Grupo: 168 - NF1233
+
+Grupo: 169 - NF486
+
+Grupo: 170 - NF73051
+
+Grupo: 171 - NF704
+
+Grupo: 172 - NF1318
+
+Grupo: 173 - NF6648
+
+Grupo: 174 - NF14100
+
+Grupo: 175 - NF394
+
+Grupo: 176 - NF8339
+
+Grupo: 177 - NF7687
+
+Grupo: 178 - NF15121
+
+Grupo: 179 - NF42
+
+Grupo: 180 - NF966
