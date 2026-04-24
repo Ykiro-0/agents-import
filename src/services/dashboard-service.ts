@@ -14,6 +14,7 @@ import type {
 import { loadState } from "./state-store.js";
 import { getMonitorState } from "./monitor.js";
 import { getLatestSuccessfulRun, getRecentRuns } from "./runs-store.js";
+import { listUploadedSpreadsheets } from "./manual-spreadsheets.js";
 
 function hasAttachment(task: ClickUpTask, extension: string): boolean {
   return task.attachments.some((attachment) => {
@@ -60,6 +61,15 @@ async function buildStatusCounts(): Promise<StatusCount[]> {
   );
 
   return results;
+}
+
+function buildEmptyStatusCounts(): StatusCount[] {
+  return [
+    { status: "NF A CHEGAR", total: 0 },
+    { status: "CONCLUIDO RECEBIMENTO", total: 0 },
+    { status: "AGUARDANDO PRECO", total: 0 },
+    { status: "AGUARDANDO ENVIO", total: 0 }
+  ];
 }
 
 function normalizeText(value?: string): string {
@@ -220,14 +230,26 @@ function buildAgentPipelineState(
 }
 
 export async function getDashboardSnapshot(): Promise<MonitorSnapshot> {
-  const [targetTasks, state, recentRuns, latestSuccessfulRun, monitorState, statusCounts] = await Promise.all([
-    getTasksByStatus(config.clickUpStatusName),
+  const [state, recentRuns, latestSuccessfulRun, monitorState, uploadedSpreadsheets] = await Promise.all([
     loadState(),
     getRecentRuns(),
     getLatestSuccessfulRun(),
     Promise.resolve(getMonitorState()),
-    buildStatusCounts()
+    Promise.resolve(listUploadedSpreadsheets())
   ]);
+
+  let targetTasks: ClickUpTask[] = [];
+  let statusCounts: StatusCount[] = buildEmptyStatusCounts();
+
+  try {
+    [targetTasks, statusCounts] = await Promise.all([
+      getTasksByStatus(config.clickUpStatusName),
+      buildStatusCounts()
+    ]);
+  } catch {
+    targetTasks = [];
+    statusCounts = buildEmptyStatusCounts();
+  }
 
   const sortedTasks = targetTasks.sort(
     (left, right) => Number(right.date_updated ?? right.date_created ?? 0) - Number(left.date_updated ?? left.date_created ?? 0)
@@ -296,6 +318,7 @@ export async function getDashboardSnapshot(): Promise<MonitorSnapshot> {
     statusCounts,
     targetTasks: mappedTasks,
     recentRuns,
-    agent
+    agent,
+    uploadedSpreadsheets
   };
 }

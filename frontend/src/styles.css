@@ -60,3 +60,298 @@ body {
     opacity: 0;
   }
 }
+
+.manual-pipeline-scene {
+  position: relative;
+  margin-top: 0.75rem;
+  height: 13.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.9rem;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.98) 100%);
+}
+
+.manual-pipeline-scene__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 8%, rgba(56, 189, 248, 0.2), transparent 36%),
+    radial-gradient(circle at 81% 12%, rgba(34, 197, 94, 0.16), transparent 33%),
+    linear-gradient(180deg, rgba(30, 41, 59, 0.2) 0%, rgba(2, 6, 23, 0) 65%);
+}
+
+.manual-pipeline-scene__floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34%;
+  background:
+    linear-gradient(180deg, rgba(51, 65, 85, 0.35), rgba(15, 23, 42, 0.95)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.11) 0px,
+      rgba(148, 163, 184, 0.11) 20px,
+      rgba(15, 23, 42, 0) 20px,
+      rgba(15, 23, 42, 0) 26px
+    );
+}
+
+.manual-pipeline-scene__desk {
+  position: absolute;
+  right: 8%;
+  bottom: 16%;
+  width: 7.5rem;
+  height: 3.2rem;
+  border: 2px solid rgba(15, 23, 42, 0.9);
+  background: linear-gradient(180deg, #8d6336 0%, #724926 100%);
+  box-shadow: inset 0 -9px 0 rgba(15, 23, 42, 0.26);
+}
+
+.manual-pipeline-scene__desk.is-working {
+  box-shadow:
+    inset 0 -9px 0 rgba(15, 23, 42, 0.26),
+    0 0 24px rgba(34, 197, 94, 0.35);
+}
+
+.manual-pipeline-scene__monitor {
+  position: absolute;
+  right: 11%;
+  top: -1.35rem;
+  width: 2.7rem;
+  height: 1.95rem;
+  border: 2px solid rgba(15, 23, 42, 0.9);
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+}
+
+.manual-pipeline-scene__desk.is-working .manual-pipeline-scene__monitor {
+  animation: monitor-working-blink 0.75s steps(2, end) infinite;
+}
+
+.manual-pipeline-scene__monitor::before {
+  content: "";
+  position: absolute;
+  left: 0.16rem;
+  right: 0.16rem;
+  top: 0.16rem;
+  bottom: 0.16rem;
+  background: rgba(34, 197, 94, 0.18);
+}
+
+.manual-pipeline-scene__agent {
+  position: absolute;
+  left: 10%;
+  bottom: 17.5%;
+  width: 2.45rem;
+  height: 3.45rem;
+  transition: left 1s ease, bottom 0.35s ease;
+}
+
+.manual-pipeline-scene__agent.stage-carry,
+.manual-pipeline-scene__agent.stage-working,
+.manual-pipeline-scene__agent.stage-celebrate,
+.manual-pipeline-scene__agent.stage-desk {
+  left: 54%;
+  bottom: 16.8%;
+}
+
+.manual-pipeline-scene__agent.is-working {
+  animation: agent-work-bounce 0.9s steps(2, end) infinite;
+}
+
+.manual-pipeline-scene__head {
+  position: absolute;
+  left: 0.55rem;
+  top: 0;
+  width: 1.3rem;
+  height: 1.2rem;
+  border: 2px solid rgba(15, 23, 42, 0.95);
+  background: #f7c89e;
+}
+
+.manual-pipeline-scene__head::before,
+.manual-pipeline-scene__head::after {
+  content: "";
+  position: absolute;
+  top: 0.38rem;
+  width: 0.16rem;
+  height: 0.16rem;
+  background: #0f172a;
+}
+
+.manual-pipeline-scene__head::before {
+  left: 0.28rem;
+}
+
+.manual-pipeline-scene__head::after {
+  right: 0.28rem;
+}
+
+.manual-pipeline-scene__body {
+  position: absolute;
+  left: 0.37rem;
+  top: 1.18rem;
+  width: 1.66rem;
+  height: 1.45rem;
+  border: 2px solid rgba(15, 23, 42, 0.95);
+  background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
+}
+
+.manual-pipeline-scene__leg {
+  position: absolute;
+  top: 2.62rem;
+  width: 0.68rem;
+  height: 0.82rem;
+  border: 2px solid rgba(15, 23, 42, 0.95);
+  background: #0f172a;
+}
+
+.manual-pipeline-scene__leg.left {
+  left: 0.42rem;
+}
+
+.manual-pipeline-scene__leg.right {
+  right: 0.42rem;
+}
+
+.manual-pipeline-scene__block {
+  position: absolute;
+  width: 1.02rem;
+  height: 1.02rem;
+  border: 2px solid rgba(15, 23, 42, 0.95);
+  background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.35);
+  transition: left 0.95s ease, top 0.95s ease, transform 0.95s ease, opacity 0.35s ease;
+  left: 47%;
+  top: -0.95rem;
+  opacity: 0;
+}
+
+.manual-pipeline-scene__block.stage-drop {
+  left: 47%;
+  top: 34%;
+  opacity: 1;
+}
+
+.manual-pipeline-scene__block.stage-carry {
+  left: 58%;
+  top: 50%;
+  opacity: 1;
+  transform: translateY(-8px);
+}
+
+.manual-pipeline-scene__block.stage-desk,
+.manual-pipeline-scene__block.stage-working,
+.manual-pipeline-scene__block.stage-celebrate {
+  left: 78%;
+  top: 58%;
+  opacity: 1;
+}
+
+.manual-pipeline-scene__bubble {
+  position: absolute;
+  left: 62%;
+  top: 25%;
+  display: inline-flex;
+  gap: 0.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0.16rem 0.38rem;
+  color: #bef264;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.manual-pipeline-scene__bubble .dot {
+  animation: work-dot 0.95s ease-in-out infinite;
+}
+
+.manual-pipeline-scene__bubble .dot:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.manual-pipeline-scene__bubble .dot:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+.manual-pipeline-scene__confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.manual-pipeline-scene__confetti-piece {
+  position: absolute;
+  top: -0.8rem;
+  width: 0.36rem;
+  height: 0.56rem;
+  border-radius: 1px;
+  animation-name: confetti-fall;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+}
+
+.manual-pipeline-scene__status {
+  position: absolute;
+  left: 0.55rem;
+  right: 0.55rem;
+  bottom: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.55rem;
+  background: rgba(2, 6, 23, 0.75);
+  padding: 0.34rem 0.5rem;
+  font-size: 0.7rem;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+@keyframes agent-work-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes monitor-working-blink {
+  0%,
+  100% {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  }
+
+  50% {
+    background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+  }
+}
+
+@keyframes work-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate3d(var(--drift-x), 230px, 0) rotate(540deg);
+    opacity: 0;
+  }
+}

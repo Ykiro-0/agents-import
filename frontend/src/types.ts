@@ -52,6 +52,14 @@ export type AgentPipelineState = {
   steps: AgentPipelineStep[];
 };
 
+export type UploadedSpreadsheetInfo = {
+  fileName: string;
+  downloadUrl: string;
+  uploadedAt: string;
+  deleteUrl: string;
+  startUrl: string;
+};
+
 export type MonitorSnapshot = {
   serverTime: string;
   targetStatus: string;
@@ -78,4 +86,5 @@ export type MonitorSnapshot = {
   targetTasks: DashboardTaskInfo[];
   recentRuns: ExecutionLogEntry[];
   agent: AgentPipelineState;
+  uploadedSpreadsheets: UploadedSpreadsheetInfo[];
 };

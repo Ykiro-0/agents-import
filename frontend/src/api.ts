@@ -41,3 +41,54 @@ export async function deleteGeneratedFile(deleteUrl: string): Promise<MonitorSna
 
   return parseJson<MonitorSnapshot>(response);
 }
+
+export async function uploadSpreadsheet(fileName: string, contentBase64: string): Promise<MonitorSnapshot> {
+  const response = await fetch("/api/upload-planilha", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      fileName,
+      contentBase64
+    })
+  });
+
+  return parseJson<MonitorSnapshot>(response);
+}
+
+export async function deleteUploadedSpreadsheet(deleteUrl: string): Promise<MonitorSnapshot> {
+  const response = await fetch(deleteUrl, {
+    method: "DELETE"
+  });
+
+  return parseJson<MonitorSnapshot>(response);
+}
+
+export async function startUploadedSpreadsheet(
+  fileName: string
+): Promise<{
+  snapshot: MonitorSnapshot;
+  result: {
+    outputPath: string;
+    outputFileName: string;
+    downloadUrl: string;
+  };
+}> {
+  const response = await fetch("/api/upload-planilha/start", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ fileName })
+  });
+
+  return parseJson<{
+    snapshot: MonitorSnapshot;
+    result: {
+      outputPath: string;
+      outputFileName: string;
+      downloadUrl: string;
+    };
+  }>(response);
+}

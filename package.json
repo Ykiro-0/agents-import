@@ -11,6 +11,7 @@
     "watch:clickup": "tsx src/index.ts --watch",
     "dashboard": "npm run client:build && tsx watch src/index.ts --dashboard",
     "enrich:spreadsheet": "tsx src/tools/enrich-spreadsheet.ts",
+    "enrich:price-workbook": "tsx src/tools/enrich-price-workbook.ts",
     "client:dev": "vite --config frontend/vite.config.ts",
     "client:build": "vite build --config frontend/vite.config.ts"
   },

@@ -173,6 +173,14 @@ export interface AgentPipelineState {
   steps: AgentPipelineStep[];
 }
 
+export interface UploadedSpreadsheetInfo {
+  fileName: string;
+  downloadUrl: string;
+  uploadedAt: string;
+  deleteUrl: string;
+  startUrl: string;
+}
+
 export interface MonitorSnapshot {
   serverTime: string;
   targetStatus: string;
@@ -193,4 +201,5 @@ export interface MonitorSnapshot {
   targetTasks: DashboardTaskInfo[];
   recentRuns: ExecutionLogEntry[];
   agent: AgentPipelineState;
+  uploadedSpreadsheets: UploadedSpreadsheetInfo[];
 }

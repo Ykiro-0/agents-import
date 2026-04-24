@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { config } from "../config.js";
 import { getDashboardSnapshot } from "../services/dashboard-service.js";
+import { deleteUploadedSpreadsheet, saveUploadedSpreadsheet } from "../services/manual-spreadsheets.js";
+import { startUploadedSpreadsheet } from "../services/manual-spreadsheet-runner.js";
 import { runManualReprocess, runMonitorCycle, startMonitorLoop } from "../services/monitor.js";
 
 function sendJson(response: http.ServerResponse, statusCode: number, payload: unknown): void {
@@ -40,6 +42,16 @@ function resolveOutputFile(fileName: string): string {
   }
 
   return filePath;
+}
+
+async function readRequestBody(request: http.IncomingMessage): Promise<string> {
+  let body = "";
+
+  for await (const chunk of request) {
+    body += chunk;
+  }
+
+  return body;
 }
 
 export function startDashboardServer(): void {
@@ -98,13 +110,15 @@ export function startDashboardServer(): void {
       }
 
       if (request.method === "POST" && url.pathname === "/api/reprocess") {
-        let body = "";
+        const body = await readRequestBody(request);
+        let payload: { taskId?: string };
 
-        for await (const chunk of request) {
-          body += chunk;
+        try {
+          payload = JSON.parse(body || "{}") as { taskId?: string };
+        } catch {
+          sendJson(response, 400, { error: "JSON invalido." });
+          return;
         }
-
-        const payload = JSON.parse(body || "{}") as { taskId?: string };
 
         if (!payload.taskId) {
           sendJson(response, 400, { error: "taskId obrigatorio." });
@@ -112,6 +126,67 @@ export function startDashboardServer(): void {
         }
 
         await runManualReprocess(payload.taskId);
+        const snapshot = await getDashboardSnapshot();
+        sendJson(response, 200, snapshot);
+        return;
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/upload-planilha") {
+        const body = await readRequestBody(request);
+        let payload: { fileName?: string; contentBase64?: string };
+
+        try {
+          payload = JSON.parse(body || "{}") as { fileName?: string; contentBase64?: string };
+        } catch {
+          sendJson(response, 400, { error: "JSON invalido." });
+          return;
+        }
+
+        if (!payload.fileName || !payload.contentBase64) {
+          sendJson(response, 400, { error: "fileName e contentBase64 sao obrigatorios." });
+          return;
+        }
+
+        saveUploadedSpreadsheet(payload.fileName, payload.contentBase64);
+        const snapshot = await getDashboardSnapshot();
+        sendJson(response, 200, snapshot);
+        return;
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/upload-planilha/start") {
+        const body = await readRequestBody(request);
+        let payload: { fileName?: string };
+
+        try {
+          payload = JSON.parse(body || "{}") as { fileName?: string };
+        } catch {
+          sendJson(response, 400, { error: "JSON invalido." });
+          return;
+        }
+
+        if (!payload.fileName) {
+          sendJson(response, 400, { error: "fileName obrigatorio." });
+          return;
+        }
+
+        const result = await startUploadedSpreadsheet(payload.fileName);
+        const snapshot = await getDashboardSnapshot();
+        sendJson(response, 200, {
+          snapshot,
+          result
+        });
+        return;
+      }
+
+      if (request.method === "DELETE" && url.pathname.startsWith("/api/upload-planilha/")) {
+        const fileName = decodeURIComponent(url.pathname.replace("/api/upload-planilha/", ""));
+
+        if (!fileName || fileName === "start") {
+          sendJson(response, 400, { error: "fileName obrigatorio." });
+          return;
+        }
+
+        deleteUploadedSpreadsheet(fileName);
         const snapshot = await getDashboardSnapshot();
         sendJson(response, 200, snapshot);
         return;

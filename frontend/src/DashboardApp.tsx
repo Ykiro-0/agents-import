@@ -1,7 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { deleteGeneratedFile, fetchDashboard, reprocessTask, runMonitorNow } from "./api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  deleteGeneratedFile,
+  deleteUploadedSpreadsheet,
+  fetchDashboard,
+  reprocessTask,
+  runMonitorNow,
+  startUploadedSpreadsheet,
+  uploadSpreadsheet
+} from "./api";
 import type { AgentPipelineStep, DashboardTaskInfo, ExecutionLogEntry, MonitorSnapshot } from "./types";
 import { PixelAgentHub } from "./components/PixelAgentHub";
+import { ManualPipelineScene, type ManualPipelineStage } from "./components/ManualPipelineScene";
 
 type ViewKey = "project" | "agent" | "list" | "approval" | "agCad" | "agPrice" | "logs" | "files" | "settings";
 
@@ -9,6 +18,11 @@ type ApprovalDraft = {
   descricao: string;
   descricaoReduzida: string;
   observacao: string;
+};
+
+type ManualDownloadNotice = {
+  fileName: string;
+  downloadUrl: string;
 };
 
 function SidebarIcon({ view }: { view: ViewKey }) {
@@ -132,6 +146,34 @@ function fmt(date?: string): string {
   }
 
   return parsed.toLocaleString("pt-BR");
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onerror = () => {
+      reject(new Error("Falha ao ler a planilha selecionada."));
+    };
+
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      const base64 = result.includes(",") ? result.split(",")[1] : "";
+
+      if (!base64) {
+        reject(new Error("Falha ao converter a planilha para upload."));
+        return;
+      }
+
+      resolve(base64);
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+function isExcelSpreadsheet(fileName: string): boolean {
+  return /\.(xlsx|xls|xlsm)$/i.test(fileName);
 }
 
 function extractTaskMeta(task: DashboardTaskInfo): {
@@ -840,12 +882,54 @@ export function DashboardApp() {
   const [activeView, setActiveView] = useState<ViewKey>("list");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const spreadsheetInputRef = useRef<HTMLInputElement | null>(null);
+  const sceneTimersRef = useRef<number[]>([]);
+  const [uploadingSpreadsheet, setUploadingSpreadsheet] = useState(false);
+  const [startingSpreadsheets, setStartingSpreadsheets] = useState<Set<string>>(new Set());
+  const [removingSpreadsheets, setRemovingSpreadsheets] = useState<Set<string>>(new Set());
+  const [manualSceneStage, setManualSceneStage] = useState<ManualPipelineStage>("idle");
+  const [manualDownloadNotice, setManualDownloadNotice] = useState<ManualDownloadNotice | null>(null);
   const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft>({
     descricao: "",
     descricaoReduzida: "",
     observacao: ""
   });
   const [approvalDecision, setApprovalDecision] = useState<string>("Aguardando decisao");
+
+  function clearSceneTimers() {
+    for (const timer of sceneTimersRef.current) {
+      window.clearTimeout(timer);
+    }
+
+    sceneTimersRef.current = [];
+  }
+
+  function queueSceneStage(stage: ManualPipelineStage, delayMs: number) {
+    const timer = window.setTimeout(() => {
+      setManualSceneStage(stage);
+      sceneTimersRef.current = sceneTimersRef.current.filter((item) => item !== timer);
+    }, delayMs);
+
+    sceneTimersRef.current.push(timer);
+  }
+
+  function runUploadScene() {
+    clearSceneTimers();
+    setManualSceneStage("drop");
+    queueSceneStage("carry", 900);
+    queueSceneStage("desk", 2250);
+  }
+
+  function runWorkScene() {
+    clearSceneTimers();
+    setManualSceneStage("working");
+  }
+
+  function runSuccessScene() {
+    clearSceneTimers();
+    setManualSceneStage("celebrate");
+    queueSceneStage("desk", 3800);
+  }
 
   async function loadSnapshot() {
     try {
@@ -865,6 +949,21 @@ export function DashboardApp() {
 
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    return () => {
+      clearSceneTimers();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (manualSceneStage === "drop" || manualSceneStage === "carry" || manualSceneStage === "working" || manualSceneStage === "celebrate") {
+      return;
+    }
+
+    const hasUploadedSpreadsheet = (snapshot?.uploadedSpreadsheets.length ?? 0) > 0;
+    setManualSceneStage(hasUploadedSpreadsheet ? "desk" : "idle");
+  }, [manualSceneStage, snapshot?.uploadedSpreadsheets.length]);
 
   useEffect(() => {
     if (!snapshot?.targetTasks.length) {
@@ -1031,10 +1130,99 @@ export function DashboardApp() {
     }
   }
 
+  async function handleUploadSpreadsheet(file: File) {
+    setUploadingSpreadsheet(true);
+
+    try {
+      const contentBase64 = await fileToBase64(file);
+      const data = await uploadSpreadsheet(file.name, contentBase64);
+      setSnapshot(data);
+      setErrorMessage(null);
+      setManualDownloadNotice(null);
+      setActiveView("agent");
+      runUploadScene();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Erro ao enviar planilha.");
+    } finally {
+      setUploadingSpreadsheet(false);
+    }
+  }
+
+  function openSpreadsheetPicker() {
+    if (uploadingSpreadsheet) {
+      return;
+    }
+
+    spreadsheetInputRef.current?.click();
+  }
+
+  async function handleStartSpreadsheet(fileName: string) {
+    setStartingSpreadsheets((prev) => new Set(prev).add(fileName));
+    runWorkScene();
+
+    try {
+      const response = await startUploadedSpreadsheet(fileName);
+      setSnapshot(response.snapshot);
+      setErrorMessage(null);
+      setManualDownloadNotice({
+        fileName: response.result.outputFileName,
+        downloadUrl: response.result.downloadUrl
+      });
+      runSuccessScene();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Erro ao iniciar planilha.");
+      const hasUploadedSpreadsheet = (snapshot?.uploadedSpreadsheets.length ?? 0) > 0;
+      setManualSceneStage(hasUploadedSpreadsheet ? "desk" : "idle");
+    } finally {
+      setStartingSpreadsheets((prev) => {
+        const next = new Set(prev);
+        next.delete(fileName);
+        return next;
+      });
+    }
+  }
+
+  async function handleRemoveUploadedSpreadsheet(deleteUrl: string, fileName: string) {
+    setRemovingSpreadsheets((prev) => new Set(prev).add(fileName));
+
+    try {
+      const data = await deleteUploadedSpreadsheet(deleteUrl);
+      setSnapshot(data);
+      setErrorMessage(null);
+      if ((data.uploadedSpreadsheets ?? []).length === 0) {
+        setManualDownloadNotice(null);
+        clearSceneTimers();
+        setManualSceneStage("idle");
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Erro ao remover NF.");
+    } finally {
+      setRemovingSpreadsheets((prev) => {
+        const next = new Set(prev);
+        next.delete(fileName);
+        return next;
+      });
+    }
+  }
+
   const selectedMeta = selectedTask ? extractTaskMeta(selectedTask) : null;
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.22),transparent_28%),radial-gradient(circle_at_top_right,rgba(34,197,94,0.16),transparent_24%),radial-gradient(circle_at_bottom_center,rgba(168,85,247,0.12),transparent_24%),linear-gradient(180deg,#08101d_0%,#09111f_55%,#0f172a_100%)] text-slate-100">
+      <input
+        accept=".xlsx,.xls,.xlsm,.csv,.tsv"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+
+          if (file) {
+            void handleUploadSpreadsheet(file);
+          }
+        }}
+        ref={spreadsheetInputRef}
+        type="file"
+      />
       <div className="flex min-h-screen">
         <aside
           className={[
@@ -1249,6 +1437,31 @@ export function DashboardApp() {
                     </span>
                   </div>
 
+                  <ManualPipelineScene stage={manualSceneStage} />
+
+                  {manualDownloadNotice ? (
+                    <div className="mt-3 rounded-xl border border-emerald-400/30 bg-emerald-500/12 p-3">
+                      <div className="text-xs font-medium text-emerald-100">
+                        Planilha enriquecida pronta: {manualDownloadNotice.fileName}
+                      </div>
+                      <div className="mt-2 flex items-center gap-2">
+                        <a
+                          className="rounded-full border border-emerald-300/40 bg-emerald-400/20 px-3 py-1 text-[11px] font-medium text-emerald-100 transition hover:bg-emerald-400/30"
+                          href={manualDownloadNotice.downloadUrl}
+                        >
+                          Baixar planilha
+                        </a>
+                        <button
+                          className="rounded-full border border-white/15 bg-white/[0.05] px-3 py-1 text-[11px] font-medium text-slate-200 transition hover:bg-white/[0.1]"
+                          onClick={() => setManualDownloadNotice(null)}
+                          type="button"
+                        >
+                          Fechar
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
                   <PixelAgentHub
                     agentName={snapshot?.agent.name ?? "Kadia"}
                     currentStage={snapshot?.agent.currentStage}
@@ -1283,6 +1496,87 @@ export function DashboardApp() {
                     <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Proxima entrega</div>
                     <div className="mt-2">
                       Implementar `Agente 1`, `Validador 1`, `Agente 2` e `Validador 2` na pipeline real.
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Monitor</div>
+                      <button
+                        className={[
+                          "rounded-full border px-3 py-1.5 text-[11px] font-medium transition",
+                          uploadingSpreadsheet
+                            ? "cursor-not-allowed border-white/10 bg-white/[0.03] text-slate-500"
+                            : "border-blue-400/20 bg-blue-500/12 text-blue-100 hover:bg-blue-500/20"
+                        ].join(" ")}
+                        disabled={uploadingSpreadsheet}
+                        onClick={openSpreadsheetPicker}
+                        type="button"
+                      >
+                        {uploadingSpreadsheet ? "Enviando..." : "Adicionar Planinha"}
+                      </button>
+                    </div>
+
+                    <div className="mt-3 space-y-2">
+                      {(snapshot?.uploadedSpreadsheets ?? []).length === 0 ? (
+                        <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-3 py-2 text-xs text-slate-400">
+                          Nenhuma planilha adicionada manualmente.
+                        </div>
+                      ) : (
+                        (snapshot?.uploadedSpreadsheets ?? []).map((sheet) => (
+                          <div
+                            key={`${sheet.fileName}-${sheet.uploadedAt}`}
+                            className="rounded-xl border border-white/10 bg-slate-950/45 px-3 py-2"
+                          >
+                            {(() => {
+                              const isStarting = startingSpreadsheets.has(sheet.fileName);
+                              const isRemoving = removingSpreadsheets.has(sheet.fileName);
+                              const canStart = isExcelSpreadsheet(sheet.fileName);
+
+                              return (
+                                <>
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="truncate text-xs font-medium text-slate-200">{sheet.fileName}</div>
+                                <div className="text-[11px] text-slate-500">{fmt(sheet.uploadedAt)}</div>
+                              </div>
+                              <a
+                                className="rounded-full border border-emerald-400/20 bg-emerald-500/15 px-3 py-1 text-[11px] font-medium text-emerald-200 transition hover:bg-emerald-500/25"
+                                href={sheet.downloadUrl}
+                              >
+                                Baixar
+                              </a>
+                            </div>
+
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              <button
+                                className="rounded-full border border-blue-400/20 bg-blue-500/12 px-3 py-1 text-[11px] font-medium text-blue-100 transition hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                disabled={isStarting || !canStart}
+                                onClick={() => {
+                                  void handleStartSpreadsheet(sheet.fileName);
+                                }}
+                                title={canStart ? "Iniciar processamento" : "Iniciar exige arquivo Excel"}
+                                type="button"
+                              >
+                                {isStarting ? "Iniciando..." : "Iniciar"}
+                              </button>
+                              <button
+                                className="rounded-full border border-rose-400/20 bg-rose-500/12 px-3 py-1 text-[11px] font-medium text-rose-200 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                disabled={isRemoving}
+                                onClick={() => {
+                                  void handleRemoveUploadedSpreadsheet(sheet.deleteUrl, sheet.fileName);
+                                }}
+                                type="button"
+                              >
+                                {isRemoving ? "Removendo..." : "Remover NF"}
+                              </button>
+                            </div>
+                                </>
+                              );
+                            })()}
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
