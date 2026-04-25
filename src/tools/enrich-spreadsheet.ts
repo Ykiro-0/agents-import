@@ -361,6 +361,10 @@ async function main(): Promise<void> {
   console.log(`Bloqueados: ${result.blockedRows}`);
   console.log(`Catalogo secoes: ${result.catalogSections}`);
   console.log(`Catalogo pares secao/grupo: ${result.catalogSectionGroupPairs}`);
+  console.log(
+    `IA configurada (entrada): groq=${options.groqApiKey ? "sim" : "nao"} | api=${options.apiUrl ? "sim" : "nao"}`
+  );
+  console.log("Ordem de tentativa IA: GROQ -> API opcional -> regras locais");
   console.log(`IA habilitada: ${result.aiEnabled ? "sim" : "nao"}`);
   console.log(`IA provider: ${result.aiProvider}`);
   console.log(`IA tentativas: ${result.aiAttempts}`);

@@ -1087,7 +1087,8 @@ async function requestApiSuggestion(
 
     const rawText = await response.text();
     const parsedJson = rawText ? (JSON.parse(rawText) as unknown) : null;
-    return parseApiSuggestion(parsedJson);
+    const extractedPayload = parseAssistantJsonPayload(parsedJson);
+    return parseApiSuggestion(extractedPayload);
   } finally {
     clearTimeout(timeoutHandle);
   }
@@ -1273,59 +1274,83 @@ export async function enrichSpreadsheet(options: EnrichSpreadsheetOptions): Prom
 
     if (skipAiByDescription) {
       aiDetail = "Descricao sem contexto suficiente para classificacao por IA.";
-    } else if (groqConfig) {
-      aiAttempts += 1;
+    } else {
+      const aiAttemptsTrace: string[] = [];
 
-      try {
-        aiSuggestion = await requestGroqSuggestion(
-          groqConfig,
-          {
+      if (groqConfig) {
+        aiAttempts += 1;
+
+        try {
+          const groqSuggestion = await requestGroqSuggestion(
+            groqConfig,
+            {
+              descricaoOriginal: originalDescription,
+              descricaoNormalizada: normalizedDescription,
+              ean: eanValue || undefined,
+              codigoOriginal: codigoOriginal || undefined
+            },
+            sectionCatalog,
+            maxReducedLength
+          );
+
+          if (groqSuggestion) {
+            aiSuggestion = groqSuggestion;
+            aiStatus = "GROQ_OK";
+            aiDetail = groqSuggestion.note ?? "";
+            aiAttemptsTrace.push("GROQ_OK");
+          } else {
+            aiAttemptsTrace.push("GROQ_SEM_SUGESTAO");
+          }
+        } catch (error: unknown) {
+          aiAttemptsTrace.push(`GROQ_ERRO:${sanitizeErrorMessage(error)}`);
+        }
+      }
+
+      if (!aiSuggestion && apiConfig) {
+        aiAttempts += 1;
+
+        try {
+          const apiSuggestion = await requestApiSuggestion(apiConfig, {
             descricaoOriginal: originalDescription,
             descricaoNormalizada: normalizedDescription,
             ean: eanValue || undefined,
-            codigoOriginal: codigoOriginal || undefined
-          },
-          sectionCatalog,
-          maxReducedLength
-        );
+            codigoOriginal: codigoOriginal || undefined,
+            catalogo: sectionCatalog?.promptText
+          });
 
-        if (aiSuggestion) {
-          aiSuccessRows += 1;
-          aiStatus = "GROQ_OK";
-          aiDetail = aiSuggestion.note ?? "";
-        } else {
-          aiFallbackRows += 1;
-          aiStatus = "GROQ_SEM_SUGESTAO";
+          if (apiSuggestion) {
+            aiSuggestion = apiSuggestion;
+            aiStatus = "API_OK";
+            aiDetail = `${aiAttemptsTrace.join(" | ")} ${apiSuggestion.note ?? ""}`.trim();
+            aiAttemptsTrace.push("API_OK");
+          } else {
+            aiAttemptsTrace.push("API_SEM_SUGESTAO");
+          }
+        } catch (error: unknown) {
+          aiAttemptsTrace.push(`API_ERRO:${sanitizeErrorMessage(error)}`);
         }
-      } catch (error: unknown) {
-        aiFallbackRows += 1;
-        aiStatus = "GROQ_ERRO";
-        aiDetail = sanitizeErrorMessage(error);
       }
-    } else if (apiConfig) {
-      aiAttempts += 1;
 
-      try {
-        aiSuggestion = await requestApiSuggestion(apiConfig, {
-          descricaoOriginal: originalDescription,
-          descricaoNormalizada: normalizedDescription,
-          ean: eanValue || undefined,
-          codigoOriginal: codigoOriginal || undefined,
-          catalogo: sectionCatalog?.promptText
-        });
-
-        if (aiSuggestion) {
-          aiSuccessRows += 1;
-          aiStatus = "API_OK";
-          aiDetail = aiSuggestion.note ?? "";
-        } else {
-          aiFallbackRows += 1;
-          aiStatus = "API_SEM_SUGESTAO";
-        }
-      } catch (error: unknown) {
+      if (aiSuggestion) {
+        aiSuccessRows += 1;
+      } else {
         aiFallbackRows += 1;
-        aiStatus = "API_ERRO";
-        aiDetail = sanitizeErrorMessage(error);
+
+        if (aiAttemptsTrace.length > 0) {
+          const lastAttempt = aiAttemptsTrace[aiAttemptsTrace.length - 1];
+
+          if (lastAttempt.startsWith("API_ERRO")) {
+            aiStatus = "API_ERRO";
+          } else if (lastAttempt === "API_SEM_SUGESTAO") {
+            aiStatus = "API_SEM_SUGESTAO";
+          } else if (lastAttempt.startsWith("GROQ_ERRO")) {
+            aiStatus = "GROQ_ERRO";
+          } else if (lastAttempt === "GROQ_SEM_SUGESTAO") {
+            aiStatus = "GROQ_SEM_SUGESTAO";
+          }
+
+          aiDetail = aiAttemptsTrace.join(" | ");
+        }
       }
     }
 

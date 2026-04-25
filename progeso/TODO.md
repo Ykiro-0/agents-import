@@ -152,7 +152,7 @@ Nao implementar antes dos validadores.
 | [x] | Criar agente enriquecido para planilha original (descricao + secao) | Kadia | `src/services/kadia-enrichment.ts`, `src/tools/enrich-spreadsheet.ts` |
 | [x] | Criar execucao com duas fontes (ClickUp e pasta local) | Kadia | `src/tools/enrich-spreadsheet.ts` |
 | [x] | Configurar pipeline para priorizar planilha original no enriquecimento | Kadia | `src/tools/enrich-spreadsheet.ts` |
-| [~] | Integrar busca API opcional para melhorar descricao/retorno de secao | Kadia | `src/services/kadia-enrichment.ts`, `src/tools/enrich-spreadsheet.ts` |
+| [x] | Integrar busca API opcional para melhorar descricao/retorno de secao | Kadia | `src/services/kadia-enrichment.ts`, `src/tools/enrich-spreadsheet.ts` |
 | [ ] | Definir endpoint final e contrato oficial da API externa | Usuario + Kadia | `docs/api.md`, `.env` |
 | [ ] | Criar campo de confianca da IA |  | `src/types.ts` |
 | [ ] | Marcar baixa confianca como pendente revisao |  | `src/validators/vf-row-validator.ts` |

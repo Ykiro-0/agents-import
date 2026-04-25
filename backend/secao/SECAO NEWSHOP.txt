@@ -194,9 +194,6 @@ Grupo: 12 - MOUSE
 
 Grupo: 13 - MOUSEPADS
 
-
-
-
 Grupo: 14 - PEN DRIVES/ CARTÕES DE MEMÓRIA
 
 Grupo: 15 - PILHAS E BATERIAS

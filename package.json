@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json && npm run client:build",
-    "dev": "tsx src/index.ts",
+    "dev": "npm run client:build && tsx watch src/index.ts --dashboard",
     "start": "node dist/index.js",
     "watch:clickup": "tsx src/index.ts --watch",
-    "dashboard": "npm run client:build && tsx watch src/index.ts --dashboard",
+    "dashboard": "npm run dev",
     "enrich:spreadsheet": "tsx src/tools/enrich-spreadsheet.ts",
     "enrich:price-workbook": "tsx src/tools/enrich-price-workbook.ts",
     "client:dev": "vite --config frontend/vite.config.ts",
